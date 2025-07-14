@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/gamemanager
+    username: root
+    password: hj13579
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  profiles:
+    active: local
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000
+
+
+server:
+  port: 8080
