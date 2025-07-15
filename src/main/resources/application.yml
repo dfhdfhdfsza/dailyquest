@@ -5,8 +5,8 @@ spring:
     password: hj13579
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: none
+    show-sql: true  #실행 중인 JPA SQL 쿼리문을 콘솔에 출력
   profiles:
     active: local
 
