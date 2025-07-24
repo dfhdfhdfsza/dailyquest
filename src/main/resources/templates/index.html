@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DailyQuest 메인 페이지</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<header>
+    <h1>🎮 DailyQuest</h1>
+    <nav>
+        <a th:href="@{/}">홈</a>
+        <a th:href="@{/login}">로그인</a>
+        <a th:href="@{/signup}">회원가입</a>
+    </nav>
+</header>
+
+<main>
+    <section>
+        <h2>프로젝트 소개</h2>
+        <p>이 웹사이트는 모바일 게임 유저를 위한 숙제 관리 도구입니다.</p>
+    </section>
+
+    <section>
+        <h2>기능 요약</h2>
+        <ul>
+            <li>✅ 일일/주간/월간 퀘스트 관리</li>
+            <li>🔔 알림 기능</li>
+            <li>📊 진행상황 통계</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>로그인 후 이용해 보세요!</h2>
+        <a th:href="@{/login}">
+            <button>로그인</button>
+        </a>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2025 DailyQuest</p>
+</footer>
+</body>
+</html>

@@ -9,7 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity  //Spring Security 설정을 사용자 정의로 오버라이드
 public class SecurityConfig {
 //    @Autowired
 //    private JwtAuthenticationFilter jwtFilter;
@@ -26,10 +26,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth   //http요청에 대한 접근제어 설정
                         .requestMatchers(                       //swagger 관련은 인증없이 접근 허용
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/login", "/signup"         //로그인,회원가입
+                                "/swagger-ui/**","/swagger-resources/**",
+                                "/v3/api-docs/**","/css/**","/api/**","/js/**",
+                                "/","/login", "/signup","/join"         //로그인,회원가입
                         ).permitAll()
                         .anyRequest().authenticated()       //그 외 요청은 로그인 필요
                 )
