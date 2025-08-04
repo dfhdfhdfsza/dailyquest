@@ -1,9 +1,9 @@
 package com.dailyquest.dailyquest.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Entity
@@ -11,6 +11,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "users",indexes = {
+        @Index(name = "idx_id",columnList = "id"),
+        @Index(name = "idx_email",columnList = "email")
+})
 public class UserEntity {
 
     @Id
@@ -21,9 +25,9 @@ public class UserEntity {
 
     private  String id;
 
-    private String email;
-
     private  String password;
+
+    private String email;
 
     private  String role;
 

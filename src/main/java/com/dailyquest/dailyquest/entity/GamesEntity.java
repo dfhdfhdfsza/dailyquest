@@ -12,6 +12,9 @@ import lombok.*;
         name = "games",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"uid", "name"})
+        },
+        indexes = {
+                @Index(name = "idx_uid",columnList = "uid")
         }
 )
 public class GamesEntity {

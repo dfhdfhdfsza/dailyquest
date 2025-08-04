@@ -9,6 +9,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "homeworks",indexes = {
+        @Index(name = "idx_game_id",columnList = "gameId")
+})
 public class HomeworksEntity {
 
     @Id

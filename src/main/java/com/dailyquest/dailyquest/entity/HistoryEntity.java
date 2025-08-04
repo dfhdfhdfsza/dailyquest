@@ -12,6 +12,11 @@ import java.util.Stack;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "history",indexes ={
+        @Index(name = "idx_user_id",columnList = "uid"),
+        @Index(name = "idx_homework_id",columnList = "homeworkId"),
+        @Index(name = "idx_start_end",columnList = "startDate,endDate")
+})
 public class HistoryEntity {
 
     @Id

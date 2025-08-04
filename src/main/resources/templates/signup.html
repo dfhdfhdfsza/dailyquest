@@ -7,27 +7,40 @@
 <body>
 <h2>회원가입</h2>
 
-<form th:action="@{/signup}" method="post" th:object="${joinDTO}">
+<form th:action="@{/signup}" method="post" th:object="${joinDTO}"  id="sigunup-form">
     <div>
         <label>이름:</label>
         <input type="text" th:field="*{username}" placeholder="이름 입력" required />
     </div>
     <div>
         <label>아이디:</label>
-        <input type="text" th:field="*{id}" id="id-input" placeholder="로그인 ID 입력" required />
-        <span id="id-check-result"></span> <!-- 결과 출력 -->
+        <input type="text" th:field="*{id}" id="id-input" placeholder="ID 입력" required />
+        <span id="id-check-result"></span> <!-- 중복 여부 출력 -->
     </div>
     <div>
         <label>이메일:</label>
-        <input type="email" th:field="*{email}" placeholder="이메일 입력" required />
+        <input type="text" id="email-id" placeholder="이메일 입력" required />
+        @
+        <select id="email-domain" onchange="handleDomainChange()" required>
+            <option value="">이메일 선택</option>
+            <option value="naver.com">naver.com</option>
+            <option value="google.com">google.com</option>
+            <option value="hanmail.net">hanmail.net</option>
+            <option value="custom">직접 입력</option>
+        </select>
+        <input type="text" id="custom-domain" placeholder="직접 입력" style="display:none;">
+        <input type="hidden" th:field="*{email}" name="email" id="full-email"/>
     </div>
     <div>
         <label>비밀번호:</label>
         <input type="password" th:field="*{password}" placeholder="비밀번호 입력" required />
     </div>
     <div>
-        <button type="submit">회원가입</button>
+        <button type="submit" id="submit">회원가입</button>
     </div>
+    <p th:if="${#fields.hasErrors('id')}" th:errors="*{id}"></p>
+    <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+    <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
 </form>
 <script th:src="@{/js/Signup.js}"></script>
 </body>

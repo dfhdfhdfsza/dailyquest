@@ -41,17 +41,17 @@ public class UserService {
 
     public  void loginProcess(LoginDTO ldto){
 
-        String username=ldto.getUsername();
+        String id=ldto.getId();
         String password=ldto.getPassword();
 
-        Boolean isExist=userRepository.existsByUsername(username);
+        Boolean isExist=userRepository.existsById(id);
 
         if(isExist){
             return;
         }
 
         UserEntity data=new UserEntity();
-        data.setUsername(username);
+        data.setUsername(id);
         data.setPassword(bCryptPasswordEncoder.encode(password));
         data.setRole("ROLE_ADMIN");
         data.setEmail("abc@naver.com");
