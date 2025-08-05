@@ -1,6 +1,7 @@
 package com.dailyquest.dailyquest.controller;
 
 import com.dailyquest.dailyquest.dto.JoinDTO;
+import com.dailyquest.dailyquest.dto.LoginDTO;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,13 @@ public class PageController {
         model.addAttribute("joinDTO", new JoinDTO());
         return "signup";
     }
+
+    @GetMapping("/login")
+    public String loginPage(Model model){
+        model.addAttribute("loginDTO",new LoginDTO());
+        return "login";
+    }
+
 
 
 }
