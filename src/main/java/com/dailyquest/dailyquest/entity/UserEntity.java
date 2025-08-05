@@ -1,9 +1,6 @@
 package com.dailyquest.dailyquest.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Entity
@@ -23,7 +20,7 @@ public class UserEntity {
 
     private  String username;
 
-    private  String id;
+    private  String loginId;
 
     private  String password;
 

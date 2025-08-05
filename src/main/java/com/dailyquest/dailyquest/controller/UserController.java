@@ -16,13 +16,7 @@ public class UserController {
 
     private final UserService userService;
 
-    //로그인
-    @PostMapping("/login")
-    public String loginProcess(LoginDTO ldto){
-        userService.loginProcess(ldto);
 
-        return  "ok";
-    }
 
     //회원가입
     @PostMapping("/signup")

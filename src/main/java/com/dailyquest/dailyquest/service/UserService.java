@@ -19,7 +19,7 @@ public class UserService {
 
     //회원가입 처리
     public Boolean signupProcess(JoinDTO jDTO) {
-        String id=jDTO.getId();
+        String id=jDTO.getLoginId();
 
         //아이디 중복체크
         Boolean isExist=userRepository.existsById(id);
@@ -29,7 +29,7 @@ public class UserService {
 
         UserEntity user=new UserEntity();
         user.setUsername(jDTO.getUsername());
-        user.setId(id);
+        user.setLoginId(id);
         user.setPassword(bCryptPasswordEncoder.encode(jDTO.getPassword()));
         user.setRole("ROLE_USER");
         user.setEmail(jDTO.getEmail());
@@ -41,7 +41,7 @@ public class UserService {
 
     public  void loginProcess(LoginDTO ldto){
 
-        String id=ldto.getId();
+        String id=ldto.getLoginId();
         String password=ldto.getPassword();
 
         Boolean isExist=userRepository.existsById(id);
