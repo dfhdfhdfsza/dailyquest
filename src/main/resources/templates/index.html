@@ -10,8 +10,9 @@
     <h1>🎮 DailyQuest</h1>
     <nav>
         <a th:href="@{/}">홈</a>
-        <a th:href="@{/login}">로그인</a>
-        <a th:href="@{/signup}">회원가입</a>
+        <a th:href="@{/login}" id="loginBtn">로그인</a>
+        <a th:href="@{/signup}" id="signupBtn">회원가입</a>
+        <a id="logoutBtn" style="display:none;">로그아웃</a>
     </nav>
 </header>
 
@@ -32,14 +33,13 @@
 
     <section>
         <h2>로그인 후 이용해 보세요!</h2>
-        <a th:href="@{/logout}">
-            <button>로그아웃</button>
-        </a>
     </section>
 </main>
 
 <footer>
     <p>&copy; 2025 DailyQuest</p>
 </footer>
+<script th:src="@{/js/Logout.js}"></script>
+<script th:src="@{/js/AuthCheck.js}"></script>
 </body>
 </html>

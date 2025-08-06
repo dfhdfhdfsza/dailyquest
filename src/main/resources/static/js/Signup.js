@@ -42,7 +42,7 @@ function handleDomainChange(){
     updateFullEmail();
 }
 
-function updateFullEmail(){
+function updateFullEmail(){ //비동기로 이메일 아이디와 도메인을 합치는 fucntion
     const emailId=document.getElementById("email-id").value;    //email 아이디부분
     const domain=document.getElementById("email-domain").value==="custom"
     ?document.getElementById("custom-domain").value.trim()
