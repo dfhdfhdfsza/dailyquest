@@ -3,6 +3,8 @@ package com.dailyquest.dailyquest.security;
 import com.dailyquest.dailyquest.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,16 +27,6 @@ public class SecurityConfig {
         this.userDetailService=userDetailService;
         this.userRepository=userRepository;
     }
-
-
-    //Spring Security는 로그인 시 UserDetailsService를 자동으로 호출
-    //여기에 CustomUserDetailService를 등록하고 내부에서 유저를 조회해서 UserDetails 객체 반환
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new CustomUserDetailService(userRepository);
-    }
-
-
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {  //password 암호화 설정
 
@@ -62,6 +54,10 @@ public class SecurityConfig {
 
 
         return http.build();
+    }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
 }

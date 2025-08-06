@@ -22,7 +22,7 @@ public class UserService {
         String id=jDTO.getLoginId();
 
         //아이디 중복체크
-        Boolean isExist=userRepository.existsById(id);
+        Boolean isExist=userRepository.existsByloginId(id);
         if(isExist){
             return false;
         }
@@ -39,22 +39,22 @@ public class UserService {
     }
 
 
-    public  void loginProcess(LoginDTO ldto){
-
-        String id=ldto.getLoginId();
-        String password=ldto.getPassword();
-
-        Boolean isExist=userRepository.existsById(id);
-
-        if(isExist){
-            return;
-        }
-
-        UserEntity data=new UserEntity();
-        data.setUsername(id);
-        data.setPassword(bCryptPasswordEncoder.encode(password));
-        data.setRole("ROLE_ADMIN");
-        data.setEmail("abc@naver.com");
-        userRepository.save(data);
-    }
+//    public  void loginProcess(LoginDTO ldto){
+//
+//        String id=ldto.getLoginId();
+//        String password=ldto.getPassword();
+//
+//        Boolean isExist=userRepository.existsByloginId(id);
+//
+//        if(isExist){
+//            return;
+//        }
+//
+//        UserEntity data=new UserEntity();
+//        data.setLoginId(id);
+//        data.setPassword(bCryptPasswordEncoder.encode(password));
+//        data.setRole("ROLE_USER");
+//        data.setEmail("abc@naver.com");
+//        userRepository.save(data);
+//    }
 }

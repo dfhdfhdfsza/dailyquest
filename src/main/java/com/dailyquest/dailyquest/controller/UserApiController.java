@@ -17,7 +17,7 @@ public class UserApiController {
     //중복 아이디 체크
     @GetMapping("/check-id")
     public ResponseEntity<Boolean> checkId(@RequestParam String id){
-        boolean exists = userRepository.existsById(id);
+        boolean exists = userRepository.existsByloginId(id);
         return ResponseEntity.ok(exists);
     }
 }
