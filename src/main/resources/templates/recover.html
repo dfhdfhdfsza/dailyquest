@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>아이디/비밀번호 찾기</title>
+</head>
+<body>
+<form th:action="@{/find-id}" method="post" th:object="${emailDTO}">
+    <div>
+        <label>이메일:</label>
+        <input type="text" th:field="*{email}"  placeholder="ID 입력" required/>
+    </div>
+    <div>
+        <button type="submit">전송</button>
+    </div>
+</form>
+</body>
+</html>

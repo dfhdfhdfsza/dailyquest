@@ -1,5 +1,6 @@
 package com.dailyquest.dailyquest.controller;
 
+import com.dailyquest.dailyquest.dto.EmailDTO;
 import com.dailyquest.dailyquest.dto.JoinDTO;
 import com.dailyquest.dailyquest.dto.LoginDTO;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,12 @@ public class PageController {
     public String loginPage(Model model){
         model.addAttribute("loginDTO",new LoginDTO());
         return "login";
+    }
+
+    @GetMapping("/recover")
+    public  String recoverPage(Model model){
+        model.addAttribute("emailDTO",new EmailDTO());
+        return "recover";
     }
 
 
