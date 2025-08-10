@@ -3,24 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>DailyQuest 메인 페이지</title>
+    <link th:href="@{/css/login.css}" rel="stylesheet">
+    <link th:href="@{/fontawesome/css/all.min.css}" rel="stylesheet">
 </head>
 <body>
 <h2>로그인</h2>
 
 <form th:action="@{/login}" method="post" th:object="${loginDTO}" id="loginForm">
+
     <div>
         <label>아이디:</label>
         <input type="text" th:field="*{loginId}" id="id-input" placeholder="ID 입력" required />
     </div>
-    <div>
+
+    <div class="password-field">
         <label>비밀번호:</label>
-        <input type="password" th:field="*{password}" id="pw-input"placeholder="비밀번호 입력" required />
+        <div class="pw-box">
+            <input type="password" th:field="*{password}" id="pw-input"
+                   class="pw-input" placeholder="비밀번호 입력" required />
+            <i class="fa-solid fa-eye"></i>
+        </div>
     </div>
+
     <div>
         <button type="submit" id="submit">로그인</button>
-        <a th:href="@{/recover}">아이디/비밀번호 찾기</a>
+        <a th:href="@{/find-id}">아이디 찾기</a>
+        <a th:href="@{/verify}">비밀번호 찾기</a>
     </div>
 </form>
-<script th:src="@{/js/Login.js}"></script>
+<script th:src="@{/js/login.js}"></script>
+<script th:src="@{/js/password-hide.js}"></script>
 </body>
 </html>

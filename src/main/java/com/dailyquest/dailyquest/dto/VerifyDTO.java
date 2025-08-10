@@ -1,12 +1,12 @@
 package com.dailyquest.dailyquest.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EmailDTO {
-    private String email;
+public class VerifyDTO {
+    private String loginId;
+    private  String email;
 }

@@ -17,7 +17,7 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}") // application.yml에 정의한 시크릿 키를 주입
     private  String secretkey;
     private SecretKey key;
-    private  final long expirationMs=1000*60*60;    //토큰만료시간    1시간
+    private  final long expirationMs=1000*60*15;    //토큰만료시간    15분
 
     //secretkey가 Spring으로부터 주입된 이후에 key를 초기화
     @PostConstruct
@@ -26,8 +26,8 @@ public class JwtTokenProvider {
     }
 
     //토큰생성메서드
-    public  String createToken(String username,String role){
-        Claims claims= Jwts.claims().setSubject(username);  //사용자 ID 설정
+    public  String createToken(String loginId,String role){
+        Claims claims= Jwts.claims().setSubject(loginId);  //사용자 ID 설정
         claims.put("role",role);                            //role 설정
 
         //토큰 생성 시간(now)과 만료시간 계산
@@ -44,14 +44,14 @@ public class JwtTokenProvider {
     }
 
     //사용자 이름 추출
-    public String getUsername(String token){
+    public String getLoginId(String token){
         //JWT 문자열을 파싱해서 Payload(Claims)를 꺼낸 뒤, sub 필드인 username을 반환
         return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
+                .setSigningKey(key)     //토큰 검증할때 사용할 시크릿키 설정
+                .build()       //파서 빌더완성
+                .parseClaimsJws(token)  //JWT를 실제로 파싱 및 검증 수행
                 .getBody()
-                .getSubject();
+                .getSubject();          //JWT 내부의 subject 추출
 
     }
 
@@ -69,6 +69,21 @@ public class JwtTokenProvider {
             return false;
         }
     }
+
+    //로그인 ID 기반으로 만료시간이 포함된 JWT 토큰을 생성
+    public String createPasswordResetToken(String loginId){
+        return Jwts.builder()
+                .setSubject(loginId)
+                .setExpiration(new Date(System.currentTimeMillis()+expirationMs))
+                .signWith(key,SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public Claims parse(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build()
+                .parseClaimsJws(token).getBody();
+    }
+
 
 
 }

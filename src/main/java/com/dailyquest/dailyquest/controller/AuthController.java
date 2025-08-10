@@ -3,6 +3,7 @@ package com.dailyquest.dailyquest.controller;
 import com.dailyquest.dailyquest.dto.LoginDTO;
 import com.dailyquest.dailyquest.entity.UserEntity;
 import com.dailyquest.dailyquest.repository.UserRepository;
+import com.dailyquest.dailyquest.security.CustomUserDetails;
 import com.dailyquest.dailyquest.security.JwtTokenProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,14 +41,13 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDTO.getLoginId(), loginDTO.getPassword()));
 
+            CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
             //아이디 조회후 userentity에서 id와 password를 꺼내서 토큰 생성
-            UserEntity user = userRepository.findByloginId(loginDTO.getLoginId()).
-                    orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            String token = jwtTokenProvider.createToken(user.getUsername(), user.getRole());
+            String token = jwtTokenProvider.createToken(user.getLoginId(), user.getRole());
 
             return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User Not Found");
         }
     }
 }

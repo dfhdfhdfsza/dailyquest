@@ -17,6 +17,17 @@ spring:
     properties:
       mail.smtp.auth: true        #SMTP 인증을 사용
       mail.smtp.starttls.enable: true   #STARTTLS는 일반 연결을 암호화된 연결로 전환하는 기능
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 365d
+      chain:
+        enabled: true
+        strategy:
+          content:
+            enabled: true
+            paths: "/**"
 
 jwt:
   secret: ${JWT_SECRET}

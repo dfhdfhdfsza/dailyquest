@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);   //토큰 추출
 
         if (token != null && jwtTokenProvider.validateToken(token)) {   //토큰이 존재하고 유효하면 인증처리 시작
-            String username = jwtTokenProvider.getUsername(token);
+            String username = jwtTokenProvider.getLoginId(token);
             //DB에서 UserEntity를 조회하고, CustomUserDetails로 변환
             UserDetails userDetails = customUserDetailService.loadUserByUsername(username);
 

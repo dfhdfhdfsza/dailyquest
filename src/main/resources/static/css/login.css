@@ -1,0 +1,109 @@
+/* 전체 페이지 기본 스타일 */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 제목 */
+h2 {
+    margin-top: 50px;
+    color: #333;
+}
+
+/* 로그인 폼 */
+form {
+    background-color: #fff;
+    padding: 20px 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+/* 입력 그룹 */
+form div {
+    margin-bottom: 15px;
+}
+
+/* 라벨 */
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+/* 인풋 */
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* 버튼 */
+button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* 링크 */
+a {
+    display: inline-block;
+    margin-top: 10px;
+    margin-right: 10px;
+    font-size: 14px;
+    color: #555;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* input+아이콘을 감싸는 박스: 아이콘의 배치 기준 */
+.password-field .pw-box {
+  position: relative;
+  width: 100%;
+}
+
+/* input: 아이콘 자리만큼 오른쪽 패딩 확보 */
+.password-field .pw-box .pw-input {
+  width: 100%;
+  padding-right: 50px;    /* 아이콘 공간 */
+  box-sizing: border-box;
+}
+
+/* 아이콘: input 안 오른쪽 ‘가운데’ 고정 + 여백 */
+.password-field .pw-box i {
+  position: absolute;
+  right: 12px;            /* 오른쪽 여백 */
+  top: 50%;               /* 세로 중앙 */
+  transform: translateY(-50%);
+  padding: 6px;           /* 위아래옆 여백(클릭 범위도 넓어짐) */
+  font-size: 16px;
+  color: #888;
+  cursor: pointer;
+  background: transparent; /* 필요하면 input 배경색으로 변경 */
+  border-radius: 4px;
+}
+
+.password-field .pw-box i:hover {
+  color: #333;
+  background: rgba(0,0,0,0.05);
+}

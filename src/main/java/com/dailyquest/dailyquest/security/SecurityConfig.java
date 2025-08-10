@@ -3,6 +3,7 @@ package com.dailyquest.dailyquest.security;
 import com.dailyquest.dailyquest.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,9 +43,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth   //http 요청에 대한 접근제어 설정
                         .requestMatchers(                       //swagger 관련은 인증없이 접근 허용
                                 "/swagger-ui/**","/swagger-resources/**",
-                                "/v3/api-docs/**","/css/**","/api/**","/js/**",
-                                "/","/login", "/signup","/join","recover","/find-id"         //인덱스,로그인,회원가입,아이디/비번찾기
-                        ).permitAll()
+                                "/v3/api-docs/**","/css/**","/api/**","/js/**","/error", "/error/**","/fontawesome/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET,"/","/login", "/signup","/join","find-id","/verify","/reset-password")//인덱스,로그인,회원가입
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST,"/login","/users/**")       //아이디찾기,본인인증,비밀번호찾기
+                        .permitAll()
                         .anyRequest().authenticated()       //그 외 요청은 로그인 필요
                 )
                 // 세션을 사용하지 않음 (JWT 방식)

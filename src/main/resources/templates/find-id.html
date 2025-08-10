@@ -5,7 +5,7 @@
     <title>아이디/비밀번호 찾기</title>
 </head>
 <body>
-<form th:action="@{/find-id}" method="post" th:object="${emailDTO}">
+<form th:action="@{/users/find-id}" method="post" th:object="${emailDTO}">
     <div>
         <label>이메일:</label>
         <input type="text" th:field="*{email}"  placeholder="ID 입력" required/>
