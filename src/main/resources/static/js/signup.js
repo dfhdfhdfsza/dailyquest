@@ -1,71 +1,144 @@
 document.addEventListener("DOMContentLoaded", function () { // 이벤트 등록
-        //이메일 선택을 바꾸거나 직접입력창에 입력할때마다 이벤트 발생
-        document.getElementById("email-id").addEventListener("input", updateFullEmail);
-        document.getElementById("email-domain").addEventListener("change", updateFullEmail);
-        document.getElementById("custom-domain").addEventListener("input", updateFullEmail);
-    });
 
-document.querySelector("#id-input").addEventListener("input",function(){    //사용자가 입력할때
-    const id=this.value;    //입력된값 가져오기
+      const form = document.getElementById("signup-form");
+      const idInput = document.getElementById("id-input");
+      const idResult = document.getElementById("id-check-result");
+      const emailIdInput = document.getElementById("email-id");
+      const domainSelect = document.getElementById("email-domain");
+      const customDomain = document.getElementById("custom-domain");
+      const fullEmailHidden = document.getElementById("full-email");
+      const submitBtn = document.getElementById("submit");
+      const emailResult = document.getElementById("email-check-result");
 
-    if(!id.trim()){ //id가 빈문자열이면 id.trim은 false
-        document.getElementById("id-check-result").innerText="";    //중복확인메시지 초기화
-        return;
-    }
 
-    fetch(`/api/users/check-id?id=${id}`)   //중복체크 요청
-        .then(res=>res.json())
-        .then(exists=>{
-            if(exists){
-                document.getElementById("id-check-result").innerText="이미 사용중인 아이디입니다.";
-                document.getElementById("id-check-result").style.color="red";
+      // 입력이 매우 잦은 이벤트에서 서버로 과도한 요청을 보내지 않게 400ms 동안 추가 입력이 없을 때만 fn을 호출
+      function debounce(fn, delay = 400) {
+            let t;
+            return (...args) => {
+              clearTimeout(t);
+              t = setTimeout(() => fn(...args), delay);
+            };
+      }
 
-            }else{
-                document.getElementById("id-check-result").innerText="사용 가능한 아이디입니다.";
-                document.getElementById("id-check-result").style.color="green";
+      // 이메일 도메인에서 ‘직접입력’ 선택 시 추가 입력창을 보였다 숨김
+      function handleDomainChange() {
+            if (domainSelect.value === "custom") {    //직접입력을 선택 했을 시 입력창 활성화
+              customDomain.style.display = "inline";
+              customDomain.required = true;
+            } else {                          //직접입력을 선택 안했을 시 입력창 비활성화
+              customDomain.style.display = "none";
+              customDomain.required = false;
+              customDomain.value = "";
             }
-        });
-})
+            updateFullEmail();
+      }
 
-function handleDomainChange(){
-    const select=document.getElementById("email-domain");
-    const customInput=document.getElementById("custom-domain");
+      //비동기로 이메일 아이디와 도메인을 합치는 fucntion
+      function updateFullEmail() {
+            const emailId = document.getElementById("email-id").value;    //email 아이디부분
+            const domain = document.getElementById("email-domain").value === "custom"
+              ? document.getElementById("custom-domain").value.trim()
+              : document.getElementById("email-domain").value;
 
-    if(select.value==="custom"){    //직접입력을 선택 했을 시 입력창 활성화
-        customInput.style.display="inline";
-        customInput.required=true;
-    }else{                          //직접입력을 선택 안했을 시 입력창 비활성화
-        customInput.style.display="none";
-        customInput.required=false;
-        customInput.value="";
-    }
-    updateFullEmail();
-}
+            //이메일아이디와 도메인 결합
+            const fullEmail = (emailId && domain) ? `${emailId}@${domain}` : "";
+            document.getElementById("full-email").value = fullEmail;
 
-function updateFullEmail(){ //비동기로 이메일 아이디와 도메인을 합치는 fucntion
-    const emailId=document.getElementById("email-id").value;    //email 아이디부분
-    const domain=document.getElementById("email-domain").value==="custom"
-    ?document.getElementById("custom-domain").value.trim()
-    :document.getElementById("email-domain").value;
+            debouncedCheckEmail();
+          }
+          //이메일 정규식 검사
+          function isValidEmailFormat(email) {
+            const pattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+            return pattern.test(email);
+      }
 
-    //이메일아이디와 도메인 결합
-    const fullEmail = (emailId && domain) ? `${emailId}@${domain}` : "";
-    document.getElementById("full-email").value = fullEmail;
+      //아이디 중복 검사
+      const debouncedCheckId = debounce(async function checkId() {
+            const id = (idInput.value || '').trim();
+            if (!id) {
+              idResult.textContent = '';
+              idResult.removeAttribute('style');
+              return;
+            }
+            try {
+              const res = await fetch(`/api/users/check-id?id=${encodeURIComponent(id)}`, {
+                headers: { 'Accept': 'application/json' }
+              });
+              if (!res.ok) throw new Error('network');
 
-}
+              const exists = (res.headers.get('content-type') || '').includes('application/json')
+                ? await res.json(): null;
 
-function isValidEmailFormat(email) {    //정규식 검사
-    const pattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    return pattern.test(email);
-}
+              if (exists) {
+                idResult.textContent = "이미 사용중인 아이디입니다.";
+                idResult.style.color = "red";
+              } else {
+                idResult.textContent = "사용 가능한 아이디입니다.";
+                idResult.style.color = "green";
+              }
+            } catch (e) {
+              idResult.textContent = "중복 확인 실패. 잠시 후 다시 시도해주세요.";
+              idResult.style.color = "orange";
+            }
+      }, 400);
 
-const form=document.querySelector("#sigunup-form");
-form.addEventListener("submit",function(e){
-    const email=document.getElementById("full-email").value;
 
-    if(!isValidEmailFormat(email)){
-        alert("이메일 형식이 올바르지 않습니다.");
-        e.preventDefault(); //폼전송 막기
-    }
+        //이메일 중복 검사
+        //유효한 형식일 때만 중복 체크 수행
+      const debouncedCheckEmail = debounce(async function checkEmail() {
+            const email = (fullEmailHidden.value || '').trim();
 
-})
+            //값이 없거나 형식이 맞지않으면 이메일결과창 초기화 후 종료
+            if (!email || !isValidEmailFormat(email)) {
+              emailResult.textContent = '';
+              emailResult.removeAttribute('style');
+              submitBtn.disabled = false;
+              return;
+            }
+
+            //이메일 중복 체크 요청
+            try {
+              const res = await fetch(`/api/users/check-email?email=${encodeURIComponent(email)}`, {
+                headers: { 'Accept': 'application/json' }
+              });
+              if (!res.ok) throw new Error('network');
+
+              // 응답이 JSON인지 안전하게 확인 후 파싱
+              const exists = (res.headers.get('content-type') || '').includes('application/json')
+                ? await res.json(): null;
+
+              if (exists) {
+                emailResult.textContent = "중복된 이메일입니다.";
+                emailResult.style.color = "red";
+                submitBtn.disabled = true;
+              } else {
+                emailResult.textContent = "사용 가능한 이메일입니다.";
+                emailResult.style.color = "green";
+                submitBtn.disabled = false;
+              }
+            } catch (e) {
+              emailResult.textContent = "이메일 확인 실패. 잠시 후 다시 시도해주세요.";
+              emailResult.style.color = "orange";
+              submitBtn.disabled = false;
+            }
+      }, 400);
+
+      // 이벤트 바인딩
+      idInput.addEventListener("input", debouncedCheckId);
+      emailIdInput.addEventListener("input", updateFullEmail);
+      domainSelect.addEventListener("change", handleDomainChange);
+      customDomain.addEventListener("input", updateFullEmail);
+      // 초기 한 번 동기화
+      updateFullEmail();
+
+      // 폼 제출 전 최종 형식 검증(UX용)
+      form.addEventListener("submit", function (e) {
+        const email = document.getElementById("full-email").value;
+
+        if (!isValidEmailFormat(email)) {
+          alert("이메일 형식이 올바르지 않습니다.");
+          e.preventDefault(); //폼전송 막기
+        }
+
+      })
+});

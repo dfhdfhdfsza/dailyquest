@@ -20,4 +20,11 @@ public class UserApiController {
         boolean exists = userRepository.existsByloginId(id);
         return ResponseEntity.ok(exists);
     }
+
+    //이메일 중복 체크
+    @GetMapping("/check-email")
+    public  ResponseEntity<Boolean> checkEmail(@RequestParam String email){
+        boolean exists=userRepository.existsByEmail(email);
+        return ResponseEntity.ok(exists);
+    }
 }
