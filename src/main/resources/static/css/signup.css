@@ -83,3 +83,43 @@ body {
             font-size: 13px;
             margin-top: 5px;
         }
+
+
+        /* input+아이콘을 감싸는 박스: 아이콘의 배치 기준 */
+        .password-field .pw-box {
+          position: relative;
+          width: 100%;
+        }
+
+        /* input: 아이콘 자리만큼 오른쪽 패딩 확보 */
+        .password-field .pw-box .pw-input {
+          width: 100%;
+          padding-right: 50px;    /* 아이콘 공간 */
+          box-sizing: border-box;
+        }
+
+        /* 아이콘: input 안 오른쪽 ‘가운데’ 고정 + 여백 */
+        .password-field .pw-box i {
+          position: absolute;
+          right: 12px;            /* 오른쪽 여백 */
+          top: 50%;               /* 세로 중앙 */
+          transform: translateY(-50%);
+          padding: 6px;           /* 위아래옆 여백(클릭 범위도 넓어짐) */
+          font-size: 16px;
+          color: #888;
+          cursor: pointer;
+          background: transparent; /* 필요하면 input 배경색으로 변경 */
+          border-radius: 4px;
+        }
+
+        .password-field .pw-box i:hover {
+          color: #333;
+          background: rgba(0,0,0,0.05);
+        }
+
+        #id-validate-result {
+           display: inline-block;
+           font-size: 13px;
+           margin-top: 5px;
+           color: #555;
+        }
