@@ -10,7 +10,11 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name="refresh_tokens")
+@Table(name="refresh_tokens",indexes = {
+        @Index(name="idx_tokenHash",columnList = "tokenHash"),
+        @Index(name = "idx_expiresAt",columnList = "expiresAt"),
+        @Index(name="idx_loginId_fingerprint",columnList = "loginId,fingerprint")
+})
 public class RefreshToken {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
