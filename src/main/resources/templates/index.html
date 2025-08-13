@@ -3,44 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <title>DailyQuest 메인 페이지</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" th:href="@{/css/index.css}" />
+    <script>
+        window.__ENV = { API_BASE_URL: "http://localhost:8080" };
+    </script>
 </head>
 <body>
-<header>
-    <h1>🎮 DailyQuest</h1>
-    <nav>
-        <a th:href="@{/}">홈</a>
-        <a th:href="@{/login}" id="loginBtn">로그인</a>
-        <a th:href="@{/signup}" id="signupBtn">회원가입</a>
-        <a id="logoutBtn" style="display:none;">로그아웃</a>
+    <!-- 헤더 -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <h1 class="logo">
+                <a th:href="@{/}">🎮 DailyQuest</a>
+            </h1>
+            <nav class="nav">
+                <a th:href="@{/}" class="nav-link">홈</a>
+                <a th:href="@{/login}" id="loginBtn" class="nav-link">로그인</a>
+                <a th:href="@{/signup}" id="signupBtn" class="nav-link">회원가입</a>
+                <button type="button" id="logoutBtn" class="btn btn-outline">로그아웃</button>
+            </nav>
+        </div>
+    </header>
 
-    </nav>
-</header>
-
-<main>
-    <section>
-        <h2>프로젝트 소개</h2>
-        <p>이 웹사이트는 모바일 게임 유저를 위한 숙제 관리 도구입니다.</p>
+    <!-- 히어로 -->
+    <section class="hero">
+        <div class="container">
+            <h2 class="hero-title">모바일 게임 숙제, 깔끔하게 정리하자</h2>
+            <p class="hero-sub">
+                여러 게임의 일일/주간/이벤트 퀘스트를 한 곳에서 관리하세요.
+            </p>
+        </div>
     </section>
 
-    <section>
-        <h2>기능 요약</h2>
-        <ul>
-            <li>✅ 일일/주간/월간 퀘스트 관리</li>
-            <li>🔔 알림 기능</li>
-            <li>📊 진행상황 통계</li>
+    <!-- 인증 박스 -->
+    <section class="container">
+        <div id="auth-box" class="card auth-card">
+            <div class="card-header">
+                <span id="auth-state">로그아웃 상태</span>
+            </div>
+            <div id="auth-detail" class="card-body" style="display:none">
+                <div class="kv"><span>uid</span><b id="auth-username"></b></div>
+                <div class="kv"><span>권한</span><b id="auth-role"></b></div>
+                <div class="kv"><span>발급</span><b id="auth-iat"></b></div>
+                <div class="kv"><span>만료</span><b id="auth-exp"></b></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 기능 요약 -->
+    <section class="container features">
+        <h3 class="section-title">기능 요약</h3>
+        <ul class="feature-grid">
+            <li class="feature">
+                <h4>✅ 퀘스트 관리</h4>
+                <p>일일/주간/월간/비정기 과제 등록과 체크</p>
+            </li>
+            <li class="feature">
+                <h4>🔔 알림</h4>
+                <p>마감 전 알림으로 놓치지 않게</p>
+            </li>
+            <li class="feature">
+                <h4>📊 통계</h4>
+                <p>진행률과 히스토리를 시각화</p>
+            </li>
         </ul>
     </section>
 
-    <section>
-        <h2>로그인 후 이용해 보세요!</h2>
+    <!-- 콜투액션 -->
+    <section class="container cta">
+        <h3>로그인 후 이용해 보세요!</h3>
     </section>
-</main>
 
-<footer>
-    <p>&copy; 2025 DailyQuest</p>
-</footer>
-<script th:src="@{/js/logout.js}"></script>
+    <!-- 푸터 -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 DailyQuest</p>
+        </div>
+    </footer>
+<script type="module" th:src="@{/js/apiClient.js}"></script>
 <script th:src="@{/js/authcheck.js}"></script>
+<script th:src="@{/js/logout.js}"></script>
+<script th:src="@{/js/abc.js}"></script>
 </body>
 </html>

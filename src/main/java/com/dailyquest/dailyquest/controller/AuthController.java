@@ -1,53 +1,193 @@
 package com.dailyquest.dailyquest.controller;
 
 import com.dailyquest.dailyquest.dto.LoginDTO;
-import com.dailyquest.dailyquest.entity.UserEntity;
+import com.dailyquest.dailyquest.repository.RefreshTokenRepository;
 import com.dailyquest.dailyquest.repository.UserRepository;
 import com.dailyquest.dailyquest.security.CustomUserDetails;
 import com.dailyquest.dailyquest.security.JwtTokenProvider;
+import com.dailyquest.dailyquest.security.RefreshToken;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private  final  UserDetailsService userDetailsService;
+
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenProvider jwtTokenProvider,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          RefreshTokenRepository refreshTokenRepository,
+                          UserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
+        this.refreshTokenRepository=refreshTokenRepository;
+        this.userDetailsService=userDetailsService;
     }
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletResponse res) {
         try {
             //로그인 가능한지 확인 요청
             //내부적으로 UserDetailsService.loadUserByloginId()을 호출
+            //실패 시 AuthenticationException이 터져 catch로 이동합니다.
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDTO.getLoginId(), loginDTO.getPassword()));
 
+            //성공한 인증의 주체(principal)를 꺼내,애플리케이션에서 쓰는 CustomUserDetails로 캐스팅
             CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-            //아이디 조회후 userentity에서 id와 password를 꺼내서 토큰 생성
-            String token = jwtTokenProvider.createToken(user.getLoginId(), user.getRole());
+            String fp = loginDTO.getFingerprint(); // 없으면 null OK
 
-            return ResponseEntity.ok(Map.of("token", token));
-        } catch (AuthenticationException e) {
+            //토큰 생성
+            String token = jwtTokenProvider.createToken(user.getUserEntity());
+            String refresh=jwtTokenProvider.createRefreshToken(user.getLoginId().toString(),fp);
+
+            // 리프레시 토큰 DB에 해시로 저장
+            RefreshToken row = new RefreshToken();
+            row.setLoginId(user.getLoginId());
+            row.setTokenHash(hash(refresh));//hash로 저장  -> 탈취 대비
+            row.setFingerprint(fp);
+            row.setExpiresAt(Instant.now().plus(Duration.ofDays(14)));
+            refreshTokenRepository.save(row);
+
+            // HttpOnly 쿠키로 refresh 내려주기(자바스크립트 접근 불가)
+            addRefreshCookie(res, refresh);
+
+            // 응답(액세스 토큰은 바디로, 유저 정보는 선택)
+            return ResponseEntity.ok(Map.of(
+                    "accessToken", token,
+                    "user", Map.of("id", user.getUserEntity().getUid(), "roles", user.getRole())
+            ));
+        } catch (AuthenticationException e) {   //로그인 실패 시 401을 반환
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User Not Found");
         }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?>refresh(@CookieValue(name="refresh_token",required=false)String refreshCookie,
+                                    @RequestBody(required = false)Map<String,String>body,HttpServletResponse res){
+
+        //리프레시 쿠키가 없으면 곧바로 401(또는 지정한 unauthorized() 응답) 반환.
+        if(refreshCookie==null)return unauthorized("NO_REFRESH");
+
+        try {
+            //리프레시 토큰 파싱
+            var jws=jwtTokenProvider.parseRefresh(refreshCookie);
+            String loginId=jws.getBody().getSubject();
+            String fp=(String) jws.getBody().get("fp");
+
+            //DB검증
+            //이미 폐기된 토큰은 거부.
+            var row=refreshTokenRepository.findByTokenHashAndRevokedFalse(hash(refreshCookie))
+                    .orElseThrow(()->new RuntimeException("NOT FOUND"));
+
+            //지문 일치 확인
+            if(fp!=null&&!Objects.equals(fp,row.getFingerprint())){
+                throw new RuntimeException("FINGERPRINT_MISMATH");
+            }
+            //만료 확인
+            if(row.getExpiresAt().isBefore(Instant.now())){
+                throw new RuntimeException("REFRESH_EXPRIED");
+            }
+            //유저 권한 조회
+            CustomUserDetails user=(CustomUserDetails) userDetailsService.loadUserByUsername(loginId);
+
+            //회전 전략:이전 토큰 무효화+새 refresh 재발급
+            row.setRevoked(true);
+            refreshTokenRepository.save(row);
+
+            //새 액세스 토큰과 새 리프레시 토큰 발급.
+            String newAccess=jwtTokenProvider.createToken(user.getUserEntity());
+            String newRefresh=jwtTokenProvider.createRefreshToken(loginId,fp);
+
+            //새 리프레시 토큰을 DB에 저장
+            RefreshToken rotated=new RefreshToken();
+            rotated.setLoginId(loginId);
+            rotated.setTokenHash(hash(newRefresh));
+            rotated.setFingerprint(fp);
+            rotated.setExpiresAt(Instant.now().plus(Duration.ofDays(14)));
+            refreshTokenRepository.save(rotated);
+
+            addRefreshCookie(res,newRefresh);
+
+            return  ResponseEntity.ok(Map.of("accessToken",newAccess));
+        }catch (Exception e){
+            return unauthorized("REFRESH_INVALID");
+        }
+    }
+    //로그아웃 시 리프레시 토큰 무효화 + 쿠키 삭제
+    @PostMapping("/logout")
+    public  ResponseEntity<?> logout(@AuthenticationPrincipal CustomUserDetails me,
+                                     @CookieValue(name = "refresh_token", required = false) String refreshCookie,
+                                     HttpServletResponse res){
+        //현재 브라우저(디바이스)만 로그아웃
+        if(me!=null){
+            refreshTokenRepository.revokeByTokenHash(hash(refreshCookie));
+        }
+        clearRefreshCookie(res);    //클라이언트(브라우저)에 저장된 HttpOnly 리프레시 쿠키를 삭제
+        return ResponseEntity.ok().build();
+    }
+
+    private void addRefreshCookie(HttpServletResponse res, String token) {
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", token) //쿠키 빌더
+                .httpOnly(true)             //httpOnly쿠키
+                .secure(true)                // HTTPS 연결에서만 전송
+                .sameSite("Strict")          // 사이트 간 전송 거의 차단
+                .path("/auth")               // /auth 경로 이하의 요청에만 쿠키가 자동 전송
+                .maxAge(Duration.ofDays(14)) // 수명
+                .build();
+        res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());   //응답 헤더에 추가
+    }
+
+    //브라우저에 저장된 refresh_token 쿠키를 삭제하는 메서드
+    private void clearRefreshCookie(HttpServletResponse res) {
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true).secure(true)
+                .sameSite("Strict")
+                .path("/auth")
+                .maxAge(0)
+                .build();
+        res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    //임의의 문자열(raw)을 SHA-256으로 해시한 뒤 Base64로 인코딩해서 반환하는 메서드
+    private String hash(String raw) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(raw.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    //401 Unauthorized 응답을 일정한 형식으로 만들어 보내는 작은 헬퍼
+    private ResponseEntity<?> unauthorized(String code) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("code", code));
     }
 }

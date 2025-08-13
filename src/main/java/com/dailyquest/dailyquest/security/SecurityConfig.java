@@ -1,32 +1,44 @@
 package com.dailyquest.dailyquest.security;
 
+import com.dailyquest.dailyquest.config.CorsProps;
 import com.dailyquest.dailyquest.repository.UserRepository;
+import lombok.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+
+
+import java.time.Duration;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity  //Spring Security 설정을 사용자 정의로 오버라이드
+@EnableConfigurationProperties(CorsProps.class)
 public class SecurityConfig {
-
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailService userDetailService;
-    private final UserRepository userRepository;
+    private  final  CorsProps corsProps;
 
     public  SecurityConfig(JwtTokenProvider jwtTokenProvider,CustomUserDetailService userDetailService,
-                           UserRepository userRepository){
+                           UserRepository userRepository,CorsProps corsProps){
         this.jwtTokenProvider=jwtTokenProvider;
         this.userDetailService=userDetailService;
-        this.userRepository=userRepository;
+        this.corsProps=corsProps;
     }
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {  //password 암호화 설정
@@ -40,10 +52,24 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter=new JwtAuthenticationFilter(jwtTokenProvider,userDetailService);
 
         http.csrf(csrf -> csrf.disable())   //CSRF(사이트 간 요청 위조) 방지 기능 비활성화
+                .cors(Customizer.withDefaults())
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                // 세션을 사용하지 않음 (JWT 방식)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(e -> e
+                        // 인증 없을 때 403 말고 401 + JSON 주도록
+                        .authenticationEntryPoint((req, res, ex) -> {
+                            res.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            res.setContentType("application/json;charset=UTF-8");
+                            res.getWriter().write("{\"code\":\"UNAUTHORIZED\"}");
+                        })
+                )
                 .authorizeHttpRequests(auth -> auth   //http 요청에 대한 접근제어 설정
                         .requestMatchers(                       //swagger 관련은 인증없이 접근 허용
-                                "/swagger-ui/**","/swagger-resources/**",
-                                "/v3/api-docs/**","/css/**","/api/**","/js/**","/error", "/error/**","/fontawesome/**")
+                        "/swagger-ui/**","/swagger-resources/**",
+                        "/v3/api-docs/**","/css/**","/api/**","/js/**","/error", "/error/**","/fontawesome/**","/health")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,"/","/login", "/signup","/join","find-id","/verify","/reset-password")//인덱스,로그인,회원가입
                         .permitAll()
@@ -51,8 +77,6 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest().authenticated()       //그 외 요청은 로그인 필요
                 )
-                // 세션을 사용하지 않음 (JWT 방식)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // JWT 필터를 Spring Security 필터 앞에 등록
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -62,6 +86,20 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+
+        var cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(corsProps.getAllowedOrigins());
+        cfg.setAllowedMethods(java.util.List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+        cfg.setAllowedHeaders(java.util.List.of("Content-Type","Authorization","X-Requested-With"));
+        cfg.setAllowCredentials(true);
+        cfg.setMaxAge(java.time.Duration.ofHours(1));
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cfg);
+        return source;
     }
 
 }

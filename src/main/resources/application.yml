@@ -31,8 +31,18 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
+  refresh:
+    secret:${JWT}
+  access-ttl: 15m
+  refresh-ttl: 14d
   expiration: 3600000
 
 
 server:
   port: 8080
+
+app:
+  cors:
+    allowed-origins:
+      - https://your-frontend.example.com
+      - http://localhost:3000

@@ -25,4 +25,11 @@ public class CustomUserDetailService implements UserDetailsService {
 
         return new CustomUserDetails(user); // UserEntity를 UserDetails로 감싸서 반환
     }
+
+    public UserDetails loadUserByUid(long uid) throws UsernameNotFoundException{
+        UserEntity user=userRepository.findByUid(uid).
+                orElseThrow(()->new UsernameNotFoundException(("사용자를 찾을 수 없습니다.")));
+
+        return new CustomUserDetails(user); // UserEntity를 UserDetails로 감싸서 반환
+    }
 }

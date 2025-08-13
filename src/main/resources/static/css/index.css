@@ -1,0 +1,156 @@
+:root{
+  --bg:#0b0d12;
+  --panel:#131722;
+  --muted:#8a93a6;
+  --text:#e8ecf4;
+  --brand:#6ea8fe;
+  --brand-strong:#3d8bfd;
+  --border:#202534;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Arial,sans-serif;
+  color:var(--text);
+  background:linear-gradient(180deg,#0b0d12 0%, #0f1420 100%);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.container{
+  width:min(1100px, 92%);
+  margin:0 auto;
+}
+
+#auth-box{
+    color:white;
+}
+
+/* Header */
+.site-header{
+  position:sticky; top:0; z-index:10;
+  background:rgba(11,13,18,.7);
+  backdrop-filter:saturate(140%) blur(8px);
+  border-bottom:1px solid var(--border);
+}
+.header-inner{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 0;
+}
+.logo a{color:#fff; text-decoration:none; font-weight:700; letter-spacing:0.3px}
+.nav{display:flex; gap:12px; align-items:center}
+.nav-link{
+  color:var(--muted);
+  text-decoration:none;
+  padding:8px 10px; border-radius:10px;
+}
+.nav-link:hover{color:#fff; background:#0f1522}
+
+/* Hero */
+.hero{
+  padding:56px 0 28px;
+  text-align:center;
+}
+.hero-title{
+  font-size:clamp(24px,4vw,36px);
+  margin:0 0 10px;
+}
+.hero-sub{
+  color:var(--muted);
+  margin:0 auto 18px;
+  max-width:720px;
+}
+.hero-actions{display:flex; gap:10px; justify-content:center}
+
+/* Buttons */
+.btn{
+  appearance:none; border:1px solid var(--border);
+  background:var(--panel); color:#fff;
+  padding:10px 14px; border-radius:12px;
+  cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+}
+.btn:hover{border-color:#2a3146; background:#151b28}
+.btn-outline{
+  background:transparent;
+}
+.btn-primary{
+  border-color:transparent;
+  background:linear-gradient(180deg, var(--brand) 0%, var(--brand-strong) 100%);
+}
+.btn-primary:hover{filter:contrast(1.05)}
+
+/* Cards */
+.card{
+  background:linear-gradient(180deg,#0f1522 0%, #0b0f1a 100%);
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+}
+.card-header{
+  padding:14px 16px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.card-body{padding:14px 16px}
+.kv{
+  display:flex; justify-content:space-between; gap:16px;
+  padding:8px 0; border-bottom:1px dashed #20283a;
+}
+.kv:last-child{border-bottom:0}
+
+/* Auth card spacing */
+.auth-card{ margin:12px 0 20px }
+
+/* Features */
+.section-title{margin:22px 0 12px}
+.features{padding:8px 0 12px}
+.feature-grid{
+  list-style:none; padding:0; margin:0;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;
+}
+.feature{
+  padding:16px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+}
+.feature h4{margin:0 0 6px}
+.feature p{margin:0; color:var(--muted)}
+
+/* CTA */
+.cta{
+  text-align:center;
+  padding:18px 0 40px;
+}
+
+/* Footer */
+.site-footer{
+  border-top:1px solid var(--border);
+  padding:16px 0; margin-top:20px;
+  color:var(--muted);
+  background:#0b0f19;
+}
+
+/* Small screens */
+@media (max-width:640px){
+  .nav{gap:6px}
+  .btn{padding:9px 12px}
+}
+
+/* Optional: 시스템 다크/라이트 대응(라이트에선 살짝 밝게) */
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f7f8fb;
+    --panel:#ffffff;
+    --text:#0b0d12;
+    --muted:#5a6275;
+    --border:#e7e9ef;
+    --brand:#4c7dff; --brand-strong:#2d63ff;
+  }
+  body{background:linear-gradient(180deg,#fbfcff 0%, #f2f5fd 100%)}
+  .site-header{background:rgba(255,255,255,.7)}
+  .nav-link:hover{background:#eef2ff}
+  .card{box-shadow:0 8px 20px rgba(0,0,0,.06)}
+}
