@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: dailyquest
   datasource:
     url: jdbc:mysql://localhost:3306/dailyquest
     username: hoje
@@ -46,3 +48,13 @@ app:
     allowed-origins:
       - https://your-frontend.example.com
       - http://localhost:3000
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true

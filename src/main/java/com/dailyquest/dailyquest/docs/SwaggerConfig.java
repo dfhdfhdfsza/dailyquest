@@ -1,4 +1,4 @@
-package com.dailyquest.dailyquest.config;
+package com.dailyquest.dailyquest.docs;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -11,8 +11,9 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("DailyQuest API 문서")
-                        .version("1.0.0")
-                        .description("DailyQuest 프로젝트의 Swagger API 문서입니다."));
+                        .title("DailyQuest API 문서") //제목
+                        .description("모바일 게임 숙제 관리 서비스 API 문서") // 설명
+                        .version("1.0.0"));
+
     }
 }

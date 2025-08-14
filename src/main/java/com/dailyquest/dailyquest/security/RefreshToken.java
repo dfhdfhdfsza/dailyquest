@@ -23,5 +23,5 @@ public class RefreshToken {
     private String tokenHash;   // 토큰 원문 대신 해시 저장(bcrypt/sha256+salt)
     private String fingerprint;    //클라이언트 지문
     private Instant expiresAt;
-    private boolean revoked=false;
+    private boolean revoked;
 }

@@ -9,3 +9,6 @@ document.getElementById("logoutBtn").addEventListener("click", async (e) => {
     location.replace("/"); // 페이지 이동은 여기서
   }
 });
+
+
+
