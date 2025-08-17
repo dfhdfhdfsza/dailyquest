@@ -1,5 +1,6 @@
 package com.dailyquest.dailyquest.controller;
 
+import com.dailyquest.dailyquest.common.ApiResponse;
 import com.dailyquest.dailyquest.dto.LoginDTO;
 import com.dailyquest.dailyquest.repository.RefreshTokenRepository;
 import com.dailyquest.dailyquest.repository.UserRepository;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @RestController
+@RequestMapping("/api/auth")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -49,9 +51,13 @@ public class AuthController {
         this.userDetailsService=userDetailsService;
     }
 
+    public record LoginResponse(String accessToken, UserSummary user) {
+        public record UserSummary(Long id, String role) {}
+    }
+    public record TokenResponse(String accessToken) {}
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletResponse res) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginDTO loginDTO, HttpServletResponse res) {
         try {
             //로그인 가능한지 확인 요청
             //내부적으로 UserDetailsService.loadUserByloginId()을 호출
@@ -64,7 +70,7 @@ public class AuthController {
             String fp = loginDTO.getFingerprint(); // 없으면 null OK
 
             //토큰 생성
-            String token = jwtTokenProvider.createToken(user.getUserEntity());
+            String access = jwtTokenProvider.createToken(user.getUserEntity());
             String refresh=jwtTokenProvider.createRefreshToken(user.getLoginId().toString(),fp);
 
             // 리프레시 토큰 DB에 해시로 저장
@@ -79,21 +85,24 @@ public class AuthController {
             addRefreshCookie(res, refresh);
 
             // 응답(액세스 토큰은 바디로, 유저 정보는 선택)
-            return ResponseEntity.ok(Map.of(
-                    "accessToken", token,
-                    "user", Map.of("id", user.getUserEntity().getUid(), "roles", user.getRole())
-            ));
+            var body = new LoginResponse(
+                    access,
+                    new LoginResponse.UserSummary(user.getUserEntity().getUid(), user.getRole())
+            );
+            return ResponseEntity.ok(ApiResponse.data(body));
         } catch (AuthenticationException e) {   //로그인 실패 시 401을 반환
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User Not Found");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("UNAUTHORIZED", "아이디 또는 비밀번호가 올바르지 않습니다."));
         }
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?>refresh(@CookieValue(name="refresh_token",required=false)String refreshCookie,
-                                    @RequestBody(required = false)Map<String,String>body,HttpServletResponse res){
+    public ResponseEntity<ApiResponse<TokenResponse>>refresh(@CookieValue(name="refresh_token",required=false)String refreshCookie,
+                                    @RequestBody(required = false)Map<String,String>body,
+                                    HttpServletResponse res){
 
         //리프레시 쿠키가 없으면 곧바로 401(또는 지정한 unauthorized() 응답) 반환.
-        if(refreshCookie==null)return unauthorized("NO_REFRESH");
+        if(refreshCookie==null)return unauthorized("NO_REFRESH", "리프레시 쿠키가 없습니다.");
 
         try {
             //리프레시 토큰 파싱
@@ -135,22 +144,25 @@ public class AuthController {
 
             addRefreshCookie(res,newRefresh);
 
-            return  ResponseEntity.ok(Map.of("accessToken",newAccess));
+            return ResponseEntity.ok(ApiResponse.data(new TokenResponse(newAccess)));
         }catch (Exception e){
-            return unauthorized("REFRESH_INVALID");
+            return unauthorized("REFRESH_INVALID", "리프레시 토큰이 유효하지 않습니다.");
         }
     }
     //로그아웃 시 리프레시 토큰 무효화 + 쿠키 삭제
     @PostMapping("/logout")
-    public  ResponseEntity<?> logout(@AuthenticationPrincipal CustomUserDetails me,
+    public  ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal CustomUserDetails me,
                                      @CookieValue(name = "refresh_token", required = false) String refreshCookie,
                                      HttpServletResponse res){
         //현재 브라우저(디바이스)만 로그아웃
-        if(me!=null){
-            refreshTokenRepository.revokeByTokenHash(hash(refreshCookie));
+        if (refreshCookie != null) {
+            try {
+                refreshTokenRepository.revokeByTokenHash(hash(refreshCookie));
+            } catch (Exception ignored) { /* 이미 지워진 경우 등 */ }
         }
+
         clearRefreshCookie(res);    //클라이언트(브라우저)에 저장된 HttpOnly 리프레시 쿠키를 삭제
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.message("로그아웃되었습니다."));
     }
 
     private void addRefreshCookie(HttpServletResponse res, String token) {
@@ -158,7 +170,7 @@ public class AuthController {
                 .httpOnly(true)             //httpOnly쿠키
                 .secure(true)                // HTTPS 연결에서만 전송
                 .sameSite("Strict")          // 사이트 간 전송 거의 차단
-                .path("/auth")               // /auth 경로 이하의 요청에만 쿠키가 자동 전송
+                .path("/api/auth")               // /auth 경로 이하의 요청에만 쿠키가 자동 전송
                 .maxAge(Duration.ofDays(14)) // 수명
                 .build();
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());   //응답 헤더에 추가
@@ -169,7 +181,7 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true).secure(true)
                 .sameSite("Strict")
-                .path("/auth")
+                .path("/api/auth")
                 .maxAge(0)
                 .build();
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -187,7 +199,8 @@ public class AuthController {
     }
 
     //401 Unauthorized 응답을 일정한 형식으로 만들어 보내는 작은 헬퍼
-    private ResponseEntity<?> unauthorized(String code) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("code", code));
+    private ResponseEntity<ApiResponse<TokenResponse>> unauthorized(String code, String msg) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(code, msg));
     }
 }

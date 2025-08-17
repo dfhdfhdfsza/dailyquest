@@ -30,6 +30,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+        //잘못된 Authorization헤더가 와도 401로 막지않음
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response); // 토큰 없으면 그냥 통과
+            return;
+        }
+
         String token = resolveToken(request);   //토큰 추출
 
         if(token==null){

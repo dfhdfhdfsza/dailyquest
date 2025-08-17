@@ -6,15 +6,12 @@
     <title>아이디/비밀번호 찾기</title>
 </head>
 <body>
-<form th:action="@{/users/find-id}" method="post" th:object="${emailDTO}">
-    <div>
-        <label>이메일:</label>
-        <input type="text" th:field="*{email}"  placeholder="ID 입력" required/>
-    </div>
-    <div>
-        <button type="submit">전송</button>
-    </div>
-</form>
-<script th:src="@{/js/apiClient.js}"></script>
+<div>
+    <label>이메일:</label>
+    <input type="text" id="email" placeholder="이메일 입력" required />
+</div>
+<button id="send-btn">전송</button>
+
+<script type="module" th:src="@{/js/pages/find-id.js}"> </script>
 </body>
 </html>

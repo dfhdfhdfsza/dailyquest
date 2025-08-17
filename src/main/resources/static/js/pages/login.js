@@ -1,3 +1,5 @@
+import { api, BASE_URL } from '/js/apiClient.js';
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
   const submitBtn = document.getElementById("submit");
@@ -19,12 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const fingerprint = fpResult.visitorId;
 
       // 로그인 요청
-      const response = await fetch("/login", {
+      const response = await fetch("api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ loginId, password, fingerprint })
       });
-
+        console.log(response.body);
       if (!response.ok) {
         const errorText = await response.text().catch(() => "로그인 실패");
         alert(`로그인 실패: ${errorText}`);

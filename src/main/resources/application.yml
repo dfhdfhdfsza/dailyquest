@@ -51,9 +51,9 @@ app:
 
 logging:
   level:
-    org:
-      springframework:
-        security: DEBUG
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.security: INFO
 
 springdoc:
   api-docs:

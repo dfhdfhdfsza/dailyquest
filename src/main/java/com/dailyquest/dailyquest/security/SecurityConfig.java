@@ -69,11 +69,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth   //http 요청에 대한 접근제어 설정
                         .requestMatchers(                       //swagger 관련은 인증없이 접근 허용
                         "/swagger-ui/**","/swagger-resources/**",
-                        "/v3/api-docs/**","/css/**","/api/**","/js/**","/error", "/error/**","/fontawesome/**","/health")
+                        "/v3/api-docs/**","/css/**","/js/**","/error", "/error/**","/fontawesome/**","/health")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET,"/","/login", "/signup","/join","find-id","/verify","/reset-password")//인덱스,로그인,회원가입
+                        .requestMatchers(HttpMethod.GET,"/","/login", "/signup","/join","/find-id",
+                                "/verify","/reset-password","api/users/check-id", "api/users/check-email")//인덱스,로그인,회원가입
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST,"/login","/users/**")       //아이디찾기,본인인증,비밀번호찾기
+                        .requestMatchers(HttpMethod.POST,"/api/users/**","/api/auth/**")       //아이디찾기,본인인증,비밀번호찾기
                         .permitAll()
                         .anyRequest().authenticated()       //그 외 요청은 로그인 필요
                 )
