@@ -16,14 +16,16 @@ public class JoinDTO {
     String username;
 
     @NotBlank(message = "아이디는 필수입니다.")
-    @Pattern(regexp="^[A-Za-z][A-Za-z0-9_-]{8,19}$")
+    //영문 대소문자 + 숫자만 허용/ 4~20자
+    @Pattern(regexp="^[a-zA-Z0-9]{4,20}$")
     String loginId;
 
     @NotBlank(message = "비밀번호는 필수입니다.")
-    @Pattern(regexp="^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$")
+    //영문 최소 1개 이상/숫자 최소 1개 이상/특수문자 최소 1개 이상/8~20자 제한
+    @Pattern(regexp="^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,20}$")
     String password;
 
-    @NotBlank @Email(message = "이메일은 필수입니다.")
-    @Pattern(regexp="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+    @NotBlank
+    @Email(message = "이메일은 필수입니다.")
     String email;
 }

@@ -20,7 +20,7 @@ import lombok.*;
 public class GamesEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long gameId;
+    private Long gameId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uid",nullable = false)

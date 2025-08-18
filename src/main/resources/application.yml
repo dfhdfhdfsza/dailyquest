@@ -1,16 +1,19 @@
 spring:
   application:
     name: dailyquest
+
   datasource:
     url: jdbc:mysql://localhost:3306/dailyquest
     username: hoje
     password: ${DB_PASSWORD}
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true  #실행 중인 JPA SQL 쿼리문을 콘솔에 출력
   profiles:
     active: local
+
   mail:
     host: smtp.gmail.com  #Gmail의 SMTP 서버 주소
     port: 587             #Gmail SMTP 서버가 사용하는 STARTTLS 포트 번호
@@ -19,6 +22,7 @@ spring:
     properties:
       mail.smtp.auth: true        #SMTP 인증을 사용
       mail.smtp.starttls.enable: true   #STARTTLS는 일반 연결을 암호화된 연결로 전환하는 기능
+
   web:
     resources:
       cache:
@@ -32,9 +36,9 @@ spring:
             paths: "/**"
 
 jwt:
-  secret: ${JWT_SECRET}
-  refresh:
-    secret:${JWT}
+  issuer: dailyquest
+  access-secret: ${JWT_SECRET}           # .env에 이미 존재
+  refresh-secret: ${JWT_REFRESH_SECRET}  # .env에 이미 존재
   access-ttl: 15m
   refresh-ttl: 14d
   expiration: 3600000
@@ -42,6 +46,11 @@ jwt:
 
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        same-site: none   # Refresh 쿠키 전략과 일치
+    forward-headers-strategy: framework  # 프록시/HTTPS 헤더 신뢰
 
 app:
   cors:
@@ -57,4 +66,6 @@ logging:
 
 springdoc:
   api-docs:
+    enabled: true
+  swagger-ui:
     enabled: true

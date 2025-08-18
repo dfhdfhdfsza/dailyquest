@@ -1,41 +1,55 @@
 package com.dailyquest.dailyquest.controller;
 
 import com.dailyquest.dailyquest.common.BusinessException;
+import com.dailyquest.dailyquest.common.ErrorCode;
 import com.dailyquest.dailyquest.dto.*;
 import com.dailyquest.dailyquest.repository.UserRepository;
+import com.dailyquest.dailyquest.security.JwtTokenProvider;
 import com.dailyquest.dailyquest.service.UserService;
+import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
 import com.dailyquest.dailyquest.common.ApiResponse;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import java.lang.Void;
+
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private  final JwtTokenProvider jwtTokenProvider;
+
+    public record TokenResponse(String accessToken) {}
 
     //중복 아이디 체크
     @GetMapping("/check-id")
-    public ResponseEntity<ApiResponse<Boolean>> checkId(@RequestParam @NotBlank(message = "id는 필수입니다.") String id){
-        boolean exists = userRepository.existsByloginId(id);
+    public ResponseEntity<ApiResponse<Boolean>> checkId(@RequestParam
+                                                            @NotBlank(message = "id는 필수입니다.")
+                                                            @Pattern(regexp="^[A-Za-z][A-Za-z0-9_-]{7,19}$")
+                                                            String id){
+        boolean exists = userService.checkId(id);
         return ResponseEntity.ok(ApiResponse.data(exists));
     }
 
     //이메일 중복 체크
     @GetMapping("/check-email")
-    public  ResponseEntity<ApiResponse<Boolean>> checkEmail(@RequestParam @NotBlank(message = "email은 필수입니다.")
+    public  ResponseEntity<ApiResponse<Boolean>> checkEmail(@RequestParam
+                                                            @NotBlank(message = "email은 필수입니다.")
                                                             @Email(message = "올바른 이메일 형식이 아닙니다.") String email){
-        boolean exists=userRepository.existsByEmail(email);
+        boolean exists=userService.checkEmail(email);
         return ResponseEntity.ok(ApiResponse.data(exists));
     }
 
@@ -43,15 +57,8 @@ public class UserController {
     //회원가입
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signupProcess(@RequestBody @Valid JoinDTO jDTO){
-        boolean isexist=userService.signupProcess(jDTO);
-
-        if(!isexist){   //아이디 중복등 비즈니스 로직 실패
-            throw new BusinessException("DUPLICATE_USER", "이미 사용 중인 아이디/이메일입니다.");
-        }
-
-        // Location 헤더를 넣을 수도 있음: URI location = URI.create("/api/users/" + dto.getLoginId());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success());
+        userService.signupProcess(jDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
     }
 
     //아이디 찾기
@@ -64,27 +71,28 @@ public class UserController {
 
     //비밀번호 재설정 전 본인인증
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse<String>> verify(@RequestBody @Valid VerifyDTO verifyDTO) {
+    public ResponseEntity<ApiResponse<TokenResponse>> verify(@RequestBody @Valid VerifyDTO verifyDTO) {
         String token = userService.verifyAndIssueToken(verifyDTO.getLoginId(), verifyDTO.getEmail());
 
-        // 보안 관점에서 토큰은 "바디로 직접 반환하지 않거나" 최소한 1회용·짧은 TTL로 발급 권장.
-        // 여기서는 예시로 바디에 내려주고, 프론트가 reset-password 화면으로 라우팅.
-        return ResponseEntity.ok(ApiResponse.data(new String(token)));
+        return ResponseEntity.ok(ApiResponse.data(new TokenResponse(token)));
     }
 
     //비밀번호 변경
     @PostMapping("/reset-password")
     public ResponseEntity<ApiResponse<Void>> confirm(@Valid @RequestBody PasswordResetDTO dto) {
+        Claims claims = jwtTokenProvider.parse(dto.getToken());
+        String purpose = claims.get("purpose", String.class);
+
+        if (!"pwd_reset".equals(purpose)){
+            throw new BusinessException(ErrorCode.AUTH_TOKEN_PURPOSE_MISMATCH);
+        }
         if (!dto.getNewPassword().equals(dto.getNewPasswordConfirm())) {
-            throw new BusinessException("PASSWORD_MISMATCH", "비밀번호가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
         userService.resetPassword(dto.getToken(), dto.getNewPassword());
         return ResponseEntity.ok(ApiResponse.message("비밀번호가 변경되었습니다."));
         // 필요 시: 비밀번호 정책 위반 등도 BusinessException으로 처리
     }
-
-
-
 
 
 }

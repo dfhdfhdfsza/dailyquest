@@ -1,4 +1,4 @@
-package com.dailyquest.dailyquest.repository;
+package com.dailyquest.dailyquest.security;
 
 import com.dailyquest.dailyquest.security.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;

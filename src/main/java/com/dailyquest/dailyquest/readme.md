@@ -51,6 +51,7 @@ EMAIL_PASSWORD=your-email-password
 
 ## 📜 API 문서
 - 로컬: http://localhost:8080/swagger-ui/index.html
+- [에러 코드 목록](docs/error-codes.md)
 
 ## 📂 폴더 구조
 ```plaintext
@@ -85,13 +86,17 @@ dailyquest/
 
 ```
 
-## 🐞 에러 코드
-| code | http | message | 설명 |
-| --- | --- | --- | --- |
-| TOKEN_EXPIRED | 401 | Access token expired | 토큰 만료 |
-| UNAUTHORIZED | 401 | Login required | 로그인 필요 |
-| FORBIDDEN | 403 | Permission denied | 권한 없음 |
-| BAD_REQUEST | 400 | Invalid request data | 잘못된 요청 
+# 📑 Error Codes
+
+모든 실패 응답은 아래 JSON 포맷을 따릅니다:
+```json
+{
+  "success": false,
+  "code": "USER_DUPLICATE_EMAIL",
+  "message": "이미 사용 중인 이메일입니다.",
+  "data": null
+}
+```
 
 ## 📸 스크린샷
 주요 화면 예시입니다. (이미지는 docs/images 폴더에 저장하고 상대 경로로 참조)

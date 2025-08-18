@@ -2,7 +2,7 @@ package com.dailyquest.dailyquest.controller;
 
 import com.dailyquest.dailyquest.common.ApiResponse;
 import com.dailyquest.dailyquest.dto.LoginDTO;
-import com.dailyquest.dailyquest.repository.RefreshTokenRepository;
+import com.dailyquest.dailyquest.security.RefreshTokenRepository;
 import com.dailyquest.dailyquest.repository.UserRepository;
 import com.dailyquest.dailyquest.security.CustomUserDetails;
 import com.dailyquest.dailyquest.security.JwtTokenProvider;

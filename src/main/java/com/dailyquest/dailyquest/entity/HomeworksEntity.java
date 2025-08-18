@@ -16,7 +16,7 @@ public class HomeworksEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long homeworkId;
+    private Long homeworkId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gameId",nullable = false)

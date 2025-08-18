@@ -33,60 +33,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const isValidEmailFormat = (email) =>
     /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
 
-  // 영문으로 시작, 영문/숫자/_/-, 총 8~20자
+  // 영문 대소문자 + 숫자만 허용/ 4~20자
   const isValidIdFormat = (id) =>
-    /^[A-Za-z][A-Za-z0-9_-]{7,19}$/.test(id);
+    /^[a-zA-Z0-9]{4,20}$/.test(id);
 
-  // 길이 8~20, 반드시 영문 1개 이상 + 숫자 1개 이상
+  // 영문 최소 1개 이상/숫자 최소 1개 이상/특수문자 최소 1개 이상/8~20자 제한
   const isValidPasswordFormat = (pw) =>
-    /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~]{8,20}$/.test(pw);
-
-  const isJsonResponse = (res) =>
-    (res.headers.get("content-type") || "").includes("application/json");
-
-  async function postJson(url, body) {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify(body),
-          credentials: "include", // 필요 시 유지
-        });
-          const ct = res.headers.get("content-type") || "";
-          let data = null;
-
-          try {
-            if (ct.includes("application/json")) {
-              // 빈 바디면 JSON.parse 에러가 나므로 먼저 text로 받고 비어있으면 null
-              const txt = await res.text();
-              data = txt ? JSON.parse(txt) : null;
-            } else if (res.status !== 204) {
-              // JSON이 아니면 텍스트로 받아서 디버깅에 활용
-              data = await res.text();
-            }
-          } catch (e) {
-            // 파싱 실패해도 아래에서 상태코드로 처리
-            console.warn("JSON parse failed:", e);
-          }
-        // ApiResponse 규격을 우선 지원
-        const isApi = data && typeof data === "object" && "success" in data;
-
-        if (!res.ok || (isApi && data.success === false)) {
-          const msg = isApi
-            ? (data.message || `HTTP ${res.status}`)
-            : (typeof data === "string" && data) || `HTTP ${res.status}`;
-          const err = new Error(msg);
-          err.code = isApi ? data.code : undefined;
-          err.status = res.status;
-          // 디버깅 도움
-          console.error("postJson error", { url, status: res.status, ct, data });
-          throw err;
-        }
-
-        // 호출부가 항상 같은 형태로 쓰게 포맷 정규화
-        return isApi ? data : { success: true, data, message: null, code: null };
-  }
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(pw);
 
 
+  // ApiResponse 표준: {success, data, message, code}
+  // 체크 계열이 true/false 또는 {data:true/false}로 와도 안전하게 boolean으로 변환
+  const toBoolean = (v) => typeof v === "boolean" ? v : !!v;
 
   const getEmail = () => {
         const local = (emailIdInput.value || "").trim();
@@ -97,35 +55,37 @@ document.addEventListener("DOMContentLoaded", () => {
         return local && domain ? `${local}@${domain}` : "";
       };
 
-      // -------- 이메일 도메인 UI --------
-      function handleDomainChange() {
-        if (domainSelect.value === "custom") {
+  // -------- 이메일 도메인 UI --------
+  function handleDomainChange() {
+       if (domainSelect.value === "custom") {
           customDomain.style.display = "inline";
           customDomain.required = true;
-        } else {
+       } else {
           customDomain.style.display = "none";
           customDomain.required = false;
           customDomain.value = "";
-        }
-        debouncedCheckEmail();
-      }
-      domainSelect.addEventListener("change", handleDomainChange);
+       }
+       debouncedCheckEmail();
+  }
+  domainSelect.addEventListener("change", handleDomainChange);
 
-      // -------- 즉시 검증 --------
-      passwordInput.addEventListener("input", () => {
+  // -------- 즉시 검증 --------
+  //비밀번호 입력시 검증
+  passwordInput.addEventListener("input", () => {
         const pw = (passwordInput.value || "").trim();
         if (!isValidPasswordFormat(pw)) {
-          pwValidateSpan.textContent = "길이 8~20, 반드시 영문 1개 이상 + 숫자 1개 이상 포함";
+          pwValidateSpan.textContent = "영문 최소 1개 이상/숫자 최소 1개 이상/특수문자 최소 1개 이상/8~20자 제한";
           pwValidateSpan.style.color = "red";
         } else {
           pwValidateSpan.textContent = "";
         }
-      });
+  });
 
-      idInput.addEventListener("input", () => {
+  //아이디 입력시 검증
+  idInput.addEventListener("input", () => {
         const id = (idInput.value || "").trim();
         if (!isValidIdFormat(id)) {
-          idValidateSpan.textContent = "영문으로 시작, 영문/숫자/_/-, 길이 8~20";
+          idValidateSpan.textContent = "영문 대소문자 + 숫자만 허용 / 4~20자";
           idValidateSpan.style.color = "red";
         } else {
           idValidateSpan.textContent = "";
@@ -141,24 +101,18 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         try {
-          const res = await fetch(`/api/users/check-id?id=${encodeURIComponent(id)}`, {
-            headers: { Accept: "application/json" },
-          });
-          if (!res.ok) throw new Error("network");
+           // 응답은 { success, data, ... } 로 표준화되어 옴
+           const { data } = await api.get("/users/check-id", {
+               params: { id }
+           });
+          const exists = toBoolean(data);
 
-          if (isJsonResponse(res)) {
-            const payload = await res.json();
-            const exists = typeof payload === "boolean" ? payload : payload.data ?? payload;
-            if (exists) {
-              idResult.textContent = "이미 사용중인 아이디입니다.";
-              idResult.style.color = "red";
-            } else {
-              idResult.textContent = "사용 가능한 아이디입니다.";
-              idResult.style.color = "green";
-            }
+          if (exists) {
+                  idResult.textContent = "이미 사용중인 아이디입니다.";
+                  idResult.style.color = "red";
           } else {
-            idResult.textContent = "";
-            idResult.removeAttribute("style");
+                  idResult.textContent = "사용 가능한 아이디입니다.";
+                  idResult.style.color = "green";
           }
         } catch (e) {
           idResult.textContent = "중복 확인 실패. 잠시 후 다시 시도해주세요.";
@@ -175,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
         markEmailTouched();
         debouncedCheckEmail();
       });
+
       customDomain.addEventListener("input", () => {
         markEmailTouched();
         debouncedCheckEmail();
@@ -194,24 +149,18 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         try {
-          const res = await fetch(`/api/users/check-email?email=${encodeURIComponent(email)}`, {
-            headers: { Accept: "application/json" },
+          const { data } = await api.get("/users/check-email", {
+               params: { email }
           });
-          if (!res.ok) throw new Error("network");
 
-          if (isJsonResponse(res)) {
-            const payload = await res.json();
-            const exists = typeof payload === "boolean" ? payload : payload.data ?? payload;
-            if (exists) {
+          const exists = toBoolean(data);
+
+          if (exists) {
               emailResult.textContent = "중복된 이메일입니다.";
               emailResult.style.color = "red";
-            } else {
+          } else {
               emailResult.textContent = "사용 가능한 이메일입니다.";
               emailResult.style.color = "green";
-            }
-          } else {
-            emailResult.textContent = "";
-            emailResult.removeAttribute("style");
           }
         } catch (e) {
           emailResult.textContent = "이메일 확인 실패. 잠시 후 다시 시도해주세요.";
@@ -238,10 +187,10 @@ document.addEventListener("DOMContentLoaded", () => {
     signupBtn.disabled = true;
     try {
       const dto = { username, loginId, password, email };
-      const result = await postJson("/api/users/signup", dto);
+      const result = await api.post("/users/signup", dto);
       serverSuccess.textContent = result.message || "회원가입 성공!";
       // 필요한 라우팅
-      window.location.href = "/login";
+      window.location.href = "/";
     } catch (err) {
       serverError.textContent = err.message || "회원가입 중 오류가 발생했습니다.";
     } finally {
@@ -250,12 +199,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   signupBtn.addEventListener("click", handleSignup);
-
-  // 엔터키로도 제출되게 하고 싶으면(폼이 없으니 수동 처리):
-  document.getElementById("signup").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // 우발적 페이지 리로드 방지
-      handleSignup();
-    }
-  });
 });

@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 // 세션을 사용하지 않음 (JWT 방식)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(e -> e
                         // 인증 없을 때 403 말고 401 + JSON 주도록
                         .authenticationEntryPoint((req, res, ex) -> {

@@ -100,6 +100,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(loginId)
                 .setExpiration(Date.from(now.plus(ttl)))
+                .claim("purpose","pwd_reset")
                 .signWith(key,SignatureAlgorithm.HS256)
                 .compact();
     }
