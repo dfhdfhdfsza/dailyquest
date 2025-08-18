@@ -18,14 +18,8 @@ export const BASE_URL = resolveBaseURL();
 
 // 퍼블릭(비인증) 경로 목록 — 여기엔 Authorization 헤더를 붙이지 않음
 const PUBLIC_PATHS = [
-//  "/api/users/signup",
-//  "/api/users/check-id",
-//  "/api/users/check-email",
   "/api/auth/login",
   "/api/auth/refresh",
-//  "/api/users/find-id",
-//  "/api/users/verify",
-//  "/api/users/reset-password"
 ];
 
 // 현재 URL이 PUBLIC_PATHS에 해당하는지 확인
@@ -58,7 +52,7 @@ export function unwrapApiResponse(res) {
 //요청 인터셉터
 //매 요청 전에 로컬 저장소에서 액세스 토큰을 꺼내 Authorization 헤더를 붙여줌.
 api.interceptors.request.use((config) => {
-  const access = localStorage.getItem("accessToken");
+  const access = sessionStorage.getItem("accessToken")||localStorage.getItem("accessToken");
   if (access&&!isPublic(config.url || "")) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${access}`;

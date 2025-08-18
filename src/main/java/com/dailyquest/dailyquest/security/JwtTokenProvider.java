@@ -38,7 +38,7 @@ public class JwtTokenProvider {
     }
 
     //토큰 생성 메서드
-    public  String createToken(UserEntity user){
+    public  String createAccessToken(UserEntity user){
         Instant now=Instant.now();
 
         //JWT 생성
@@ -53,12 +53,13 @@ public class JwtTokenProvider {
     }
 
     //리프레시 토큰 생성
-    public String createRefreshToken(String loginId,String fingerprint){
+    public String createRefreshToken(String loginId,String fingerprint,boolean persistent){
         Instant now=Instant.now();
 
         return Jwts.builder()
                 .setSubject(loginId)
                 .claim("fp",fingerprint)
+                .claim("pr", persistent)             // 자동로그인 여부
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(Instant.now().plus(refreshTtl)))
                 .signWith(refreshKey, SignatureAlgorithm.HS256)

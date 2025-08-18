@@ -9,28 +9,30 @@
 <body>
 <h2>로그인</h2>
 
-<form th:action="@{/login}" method="post" th:object="${loginDTO}" id="loginForm">
 
     <div>
         <label>아이디:</label>
-        <input type="text" th:field="*{loginId}" id="id-input" placeholder="ID 입력" required />
+        <input type="text"  id="id-input" placeholder="ID 입력" required />
     </div>
 
     <div class="password-field">
         <label>비밀번호:</label>
         <div class="pw-box">
-            <input type="password" th:field="*{password}" id="pw-input"
+            <input type="password"  id="pw-input"
                    class="pw-input" placeholder="비밀번호 입력" required />
             <i class="fa-solid fa-eye"></i>
         </div>
     </div>
-    <input type="hidden" th:field="*{fingerprint}" />
     <div>
-        <button type="submit" id="submit">로그인</button>
+        자동 로그인<input type="checkbox"  id="auto-login">
+    </div>
+
+    <div>
+        <button type="button" id="submit">로그인</button>
         <a th:href="@{/find-id}">아이디 찾기</a>
         <a th:href="@{/verify}">비밀번호 찾기</a>
     </div>
-</form>
+
 <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
 <script type="module" th:src="@{/js/pages/login.js}"></script>
 <script th:src="@{/js/password-hide.js}"></script>

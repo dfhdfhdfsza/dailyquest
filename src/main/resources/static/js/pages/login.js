@@ -3,8 +3,9 @@ import { api, BASE_URL } from '/js/apiClient.js';
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
   const submitBtn = document.getElementById("submit");
+  const autoLogin=document.getElementById("auto-login");
 
-  form.addEventListener("submit", async (e) => {
+  submitBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 
     const loginId = document.getElementById("id-input").value.trim();
@@ -24,9 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ loginId, password, fingerprint })
+        body: JSON.stringify({ loginId, password, fingerprint,autologin:!!autoLogin?.checked })
       });
-        console.log(response.body);
+
       if (!response.ok) {
         const errorText = await response.text().catch(() => "로그인 실패");
         alert(`로그인 실패: ${errorText}`);
@@ -36,8 +37,14 @@ document.addEventListener("DOMContentLoaded", () => {
       // 서버는 { accessToken: "...", user: {...} } 형태로 응답
       const { accessToken } = await response.json();
 
-      // 액세스 토큰 저장 (키 이름도 일관되게)
-      localStorage.setItem("accessToken", accessToken);
+      // 자동로그인 체크 → localStorage, 아니면 sessionStorage
+       if (autoLogin?.checked) {
+            localStorage.setItem("accessToken", accessToken);
+            sessionStorage.removeItem("accessToken");
+       } else {
+            sessionStorage.setItem("accessToken", accessToken);
+            localStorage.removeItem("accessToken");
+       }
 
       alert("로그인 성공");
       window.location.href = "/";

@@ -20,5 +20,7 @@ public class LoginDTO {
     @Pattern(regexp="^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,20}$")
     private  String password;
 
+    private  boolean autologin;
+
     private  String fingerprint;
 }

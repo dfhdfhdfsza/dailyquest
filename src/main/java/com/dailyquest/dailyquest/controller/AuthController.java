@@ -34,19 +34,15 @@ import java.util.Objects;
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
     private  final  UserDetailsService userDetailsService;
-
     private final RefreshTokenRepository refreshTokenRepository;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenProvider jwtTokenProvider,
-                          UserRepository userRepository,
                           RefreshTokenRepository refreshTokenRepository,
                           UserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.userRepository = userRepository;
         this.refreshTokenRepository=refreshTokenRepository;
         this.userDetailsService=userDetailsService;
     }
@@ -69,9 +65,10 @@ public class AuthController {
             CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
             String fp = loginDTO.getFingerprint(); // 없으면 null OK
 
+
             //토큰 생성
-            String access = jwtTokenProvider.createToken(user.getUserEntity());
-            String refresh=jwtTokenProvider.createRefreshToken(user.getLoginId().toString(),fp);
+            String access = jwtTokenProvider.createAccessToken(user.getUserEntity());
+            String refresh=jwtTokenProvider.createRefreshToken(user.getLoginId().toString(),fp,loginDTO.isAutologin());
 
             // 리프레시 토큰 DB에 해시로 저장
             RefreshToken row = new RefreshToken();
@@ -82,7 +79,7 @@ public class AuthController {
             refreshTokenRepository.save(row);
 
             // HttpOnly 쿠키로 refresh 내려주기(자바스크립트 접근 불가)
-            addRefreshCookie(res, refresh);
+            addRefreshCookie(res, refresh,loginDTO.isAutologin());
 
             // 응답(액세스 토큰은 바디로, 유저 정보는 선택)
             var body = new LoginResponse(
@@ -109,6 +106,8 @@ public class AuthController {
             var jws=jwtTokenProvider.parseRefresh(refreshCookie);
             String loginId=jws.getBody().getSubject();
             String fp=(String) jws.getBody().get("fp");
+            Boolean pr=jws.getBody().get("pr", Boolean.class);    // 자동로그인 여부   npe 방지
+            boolean persistent = Boolean.TRUE.equals(pr);
 
             //DB검증
             //이미 폐기된 토큰은 거부.
@@ -131,8 +130,8 @@ public class AuthController {
             refreshTokenRepository.save(row);
 
             //새 액세스 토큰과 새 리프레시 토큰 발급.
-            String newAccess=jwtTokenProvider.createToken(user.getUserEntity());
-            String newRefresh=jwtTokenProvider.createRefreshToken(loginId,fp);
+            String newAccess=jwtTokenProvider.createAccessToken(user.getUserEntity());
+            String newRefresh=jwtTokenProvider.createRefreshToken(loginId,fp,persistent);
 
             //새 리프레시 토큰을 DB에 저장
             RefreshToken rotated=new RefreshToken();
@@ -142,7 +141,7 @@ public class AuthController {
             rotated.setExpiresAt(Instant.now().plus(Duration.ofDays(14)));
             refreshTokenRepository.save(rotated);
 
-            addRefreshCookie(res,newRefresh);
+            addRefreshCookie(res,newRefresh,persistent);
 
             return ResponseEntity.ok(ApiResponse.data(new TokenResponse(newAccess)));
         }catch (Exception e){
@@ -165,15 +164,18 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.message("로그아웃되었습니다."));
     }
 
-    private void addRefreshCookie(HttpServletResponse res, String token) {
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", token) //쿠키 빌더
+    //persistent=true면 Max-Age(15일), false면 세션 쿠키
+    private void addRefreshCookie(HttpServletResponse res, String token, boolean persistent) {
+        ResponseCookie.ResponseCookieBuilder  b = ResponseCookie.from("refresh_token", token) //쿠키 빌더
                 .httpOnly(true)             //httpOnly쿠키
                 .secure(true)                // HTTPS 연결에서만 전송
                 .sameSite("Strict")          // 사이트 간 전송 거의 차단
-                .path("/api/auth")               // /auth 경로 이하의 요청에만 쿠키가 자동 전송
-                .maxAge(Duration.ofDays(14)) // 수명
-                .build();
-        res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());   //응답 헤더에 추가
+                .path("/api/auth");               // /auth 경로 이하의 요청에만 쿠키가 자동 전송
+                if (persistent){
+                    b.maxAge(Duration.ofDays(14));  // rememberMe일 때만 지속 쿠키
+                }// remember=false면 Max-Age 미설정 → 세션 쿠키
+
+        res.addHeader(HttpHeaders.SET_COOKIE, b.build().toString());   //응답 헤더에 추가
     }
 
     //브라우저에 저장된 refresh_token 쿠키를 삭제하는 메서드
