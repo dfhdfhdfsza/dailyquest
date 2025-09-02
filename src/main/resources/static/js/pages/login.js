@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const fingerprint = fpResult.visitorId;
 
       // 로그인 요청
-      const response = await fetch("api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ loginId, password, fingerprint,autologin:!!autoLogin?.checked })
@@ -34,8 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // 서버는 { accessToken: "...", user: {...} } 형태로 응답
-      const { accessToken } = await response.json();
+      // 응답 형태 변화 대응: {accessToken} 또는 {data:{accessToken}}
+      const data = await response.json().catch(() => ({}));
+      const accessToken =
+        data?.accessToken ||
+        data?.data?.accessToken ||
+        null;
 
       // 자동로그인 체크 → localStorage, 아니면 sessionStorage
        if (autoLogin?.checked) {

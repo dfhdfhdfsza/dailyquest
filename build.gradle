@@ -38,6 +38,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
@@ -47,6 +48,12 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'	//redis
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'	//Actuator
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+	//소셜로그인
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
 }
 

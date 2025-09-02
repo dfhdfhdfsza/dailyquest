@@ -19,12 +19,8 @@ import { api } from '/js/apiClient.js';
         const token = typeof res?.data === 'string' ? res.data : res?.data?.token;
         if (!token) throw new Error('토큰이 응답에 없습니다.');
 
-        // 방법 A) 쿼리스트링으로 화면 이동
+        //쿼리스트링으로 화면 이동
         window.location.href = `/reset-password?token=${encodeURIComponent(token)}`;
-
-        // 방법 B) 토큰을 세션스토리지에 저장 후 /reset-password 진입에서 꺼내 쓰고 싶다면:
-        // sessionStorage.setItem('pw_reset_token', token);
-        // window.location.href = '/reset-password';
 
       } catch (e) {
         msgEl.textContent = e?.message || '본인인증 요청이 실패했습니다.';

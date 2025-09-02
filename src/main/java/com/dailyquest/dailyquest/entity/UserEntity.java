@@ -3,6 +3,8 @@ package com.dailyquest.dailyquest.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
+
 @Entity
 @Getter @Setter
 @NoArgsConstructor
@@ -34,5 +36,9 @@ public class UserEntity {
     @Column(nullable=false, length=20)
     private  String role;
 
+    // 로그인 제한 관련
+    private Integer failedAttempts = 0;
+    private Instant lastFailedAt;
+    private Instant lockedUntil; // null 아니면서 현재시각 이전이면 잠금 해제 대상
 
 }

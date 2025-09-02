@@ -2,6 +2,7 @@ package com.dailyquest.dailyquest.security;
 
 import com.dailyquest.dailyquest.config.CorsProps;
 import com.dailyquest.dailyquest.repository.UserRepository;
+import com.dailyquest.dailyquest.security.limit.LoginEndpointRateLimitFilter;
 import lombok.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -33,12 +34,14 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailService userDetailService;
     private  final  CorsProps corsProps;
+    private final LoginEndpointRateLimitFilter loginRateLimitFilter;
 
     public  SecurityConfig(JwtTokenProvider jwtTokenProvider,CustomUserDetailService userDetailService,
-                           UserRepository userRepository,CorsProps corsProps){
+                           UserRepository userRepository,CorsProps corsProps,LoginEndpointRateLimitFilter loginRateLimitFilter){
         this.jwtTokenProvider=jwtTokenProvider;
         this.userDetailService=userDetailService;
         this.corsProps=corsProps;
+        this.loginRateLimitFilter=loginRateLimitFilter;
     }
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {  //password 암호화 설정
@@ -79,7 +82,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated()       //그 외 요청은 로그인 필요
                 )
                 // JWT 필터를 Spring Security 필터 앞에 등록
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(loginRateLimitFilter,
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
 
         return http.build();

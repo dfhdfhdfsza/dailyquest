@@ -23,13 +23,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
    el.style.display = isVisible ? el.dataset[STORE_KEY] : "none";
  }
+ // 문자열 토큰 유효성 가드
+ const isValidTokenString = (v) =>
+   typeof v === "string" &&
+   v.trim() !== "" &&
+   v !== "undefined" &&
+   v !== "null";
 
     //로컬스토리지에 토큰이 하나라도 있는지 확인
   function hasToken() {
-    return TOKEN_KEYS.some((key) => {
-      const value = localStorage.getItem(key);
-      return typeof value === "string" && value.trim() !== "";
-    });
+      const stores = [localStorage, sessionStorage]; // 둘 다 확인!
+      for (const store of stores) {
+        for (const key of TOKEN_KEYS) {
+          const value = store.getItem(key);
+          if (isValidTokenString(value) /* && looksLikeJwt(value) */) {
+            return true;
+          }
+        }
+      }
+      return false;
   }
 
 

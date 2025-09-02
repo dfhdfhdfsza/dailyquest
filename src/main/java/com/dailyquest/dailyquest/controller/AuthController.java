@@ -7,6 +7,8 @@ import com.dailyquest.dailyquest.repository.UserRepository;
 import com.dailyquest.dailyquest.security.CustomUserDetails;
 import com.dailyquest.dailyquest.security.JwtTokenProvider;
 import com.dailyquest.dailyquest.security.RefreshToken;
+import com.dailyquest.dailyquest.security.limit.LoginAttemptLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -36,15 +38,19 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private  final  UserDetailsService userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
+    //로그인 시도 제한 핵심 서비스 주입
+    private final LoginAttemptLimiter limiter;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenProvider jwtTokenProvider,
                           RefreshTokenRepository refreshTokenRepository,
-                          UserDetailsService userDetailsService) {
+                          UserDetailsService userDetailsService,
+                          LoginAttemptLimiter limiter) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository=refreshTokenRepository;
         this.userDetailsService=userDetailsService;
+        this.limiter=limiter;
     }
 
     public record LoginResponse(String accessToken, UserSummary user) {
@@ -53,7 +59,13 @@ public class AuthController {
     public record TokenResponse(String accessToken) {}
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginDTO loginDTO, HttpServletResponse res) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginDTO loginDTO,
+                                                            HttpServletResponse res,
+                                                            HttpServletRequest req) {   //ip추출용
+        //사전 차단: IP/계정 락 확인(잠금이면 RateLimitException 던져지고 전역 핸들러가 423/429로 응답)
+        final String ip=limiter.extractClientIp(req);
+        limiter.preCheck(loginDTO.getLoginId(),ip);
+
         try {
             //로그인 가능한지 확인 요청
             //내부적으로 UserDetailsService.loadUserByloginId()을 호출
@@ -61,10 +73,12 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDTO.getLoginId(), loginDTO.getPassword()));
 
+            //성공처리:카운터/락 리셋
+            limiter.onSuccess(loginDTO.getLoginId(),ip);
+
             //성공한 인증의 주체(principal)를 꺼내,애플리케이션에서 쓰는 CustomUserDetails로 캐스팅
             CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
             String fp = loginDTO.getFingerprint(); // 없으면 null OK
-
 
             //토큰 생성
             String access = jwtTokenProvider.createAccessToken(user.getUserEntity());
@@ -87,9 +101,14 @@ public class AuthController {
                     new LoginResponse.UserSummary(user.getUserEntity().getUid(), user.getRole())
             );
             return ResponseEntity.ok(ApiResponse.data(body));
-        } catch (AuthenticationException e) {   //로그인 실패 시 401을 반환
+
+        }catch (AuthenticationException e){
+            //실패 처리: 실패 카운터 증가/임계 도달 시 락 적용
+            limiter.onFailure(loginDTO.getLoginId(),ip);
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("UNAUTHORIZED", "아이디 또는 비밀번호가 올바르지 않습니다."));
+
         }
     }
 
@@ -112,7 +131,7 @@ public class AuthController {
             //DB검증
             //이미 폐기된 토큰은 거부.
             var row=refreshTokenRepository.findByTokenHashAndRevokedFalse(hash(refreshCookie))
-                    .orElseThrow(()->new RuntimeException("NOT FOUND"));
+                    .orElseThrow(()->new RuntimeException("REFRESH_TOKEN_NOT_FOUND"));
 
             //지문 일치 확인
             if(fp!=null&&!Objects.equals(fp,row.getFingerprint())){
@@ -120,12 +139,12 @@ public class AuthController {
             }
             //만료 확인
             if(row.getExpiresAt().isBefore(Instant.now())){
-                throw new RuntimeException("REFRESH_EXPRIED");
+                throw new RuntimeException("REFRESH_EXPIRED");
             }
             //유저 권한 조회
             CustomUserDetails user=(CustomUserDetails) userDetailsService.loadUserByUsername(loginId);
 
-            //회전 전략:이전 토큰 무효화+새 refresh 재발급
+            //회전 전략:이전 refresh 토큰 무효화+새 refresh 토큰 재발급
             row.setRevoked(true);
             refreshTokenRepository.save(row);
 
