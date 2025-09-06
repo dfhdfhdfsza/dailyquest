@@ -3,6 +3,11 @@ package com.dailyquest.dailyquest.security;
 import com.dailyquest.dailyquest.config.CorsProps;
 import com.dailyquest.dailyquest.repository.UserRepository;
 import com.dailyquest.dailyquest.security.limit.LoginEndpointRateLimitFilter;
+import com.dailyquest.dailyquest.security.oauth.CustomOAuth2UserService;
+import com.dailyquest.dailyquest.security.oauth.OAuth2FailureHandler;
+import com.dailyquest.dailyquest.security.oauth.OAuth2SuccessHandler;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -36,12 +41,21 @@ public class SecurityConfig {
     private  final  CorsProps corsProps;
     private final LoginEndpointRateLimitFilter loginRateLimitFilter;
 
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
+
     public  SecurityConfig(JwtTokenProvider jwtTokenProvider,CustomUserDetailService userDetailService,
-                           UserRepository userRepository,CorsProps corsProps,LoginEndpointRateLimitFilter loginRateLimitFilter){
+                           UserRepository userRepository,CorsProps corsProps,LoginEndpointRateLimitFilter loginRateLimitFilter,
+                           CustomOAuth2UserService customOAuth2UserService,OAuth2SuccessHandler oAuth2SuccessHandler,
+                           OAuth2FailureHandler oAuth2FailureHandler){
         this.jwtTokenProvider=jwtTokenProvider;
         this.userDetailService=userDetailService;
         this.corsProps=corsProps;
         this.loginRateLimitFilter=loginRateLimitFilter;
+        this.customOAuth2UserService=customOAuth2UserService;
+        this.oAuth2SuccessHandler=oAuth2SuccessHandler;
+        this.oAuth2FailureHandler=oAuth2FailureHandler;
     }
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {  //password 암호화 설정
@@ -59,8 +73,10 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                // 세션을 사용하지 않음 (JWT 방식)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 필요할 때만 세션 생성 (OAuth2에 필요)
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                //SecurityContext는 명시 저장일 때만 세션에 보관 (JWT 경로에서 세션 생기는 것 방지)
+                .securityContext(sc -> sc.requireExplicitSave(true))
                 .exceptionHandling(e -> e
                         // 인증 없을 때 403 말고 401 + JSON 주도록
                         .authenticationEntryPoint((req, res, ex) -> {
@@ -72,7 +88,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth   //http 요청에 대한 접근제어 설정
                         .requestMatchers(                       //swagger 관련은 인증없이 접근 허용
                         "/swagger-ui/**","/swagger-resources/**",
-                        "/v3/api-docs/**","/css/**","/js/**","/error", "/error/**","/fontawesome/**","/health")
+                        "/v3/api-docs/**","/css/**","/js/**","/error", "/error/**","/fontawesome/**","/health",
+                                "/oauth2/**","/login/oauth2/**","/api/auth/social/exchange")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,"/","/login", "/signup","/join","/find-id",
                                 "/verify","/reset-password","api/users/check-id", "api/users/check-email")//인덱스,로그인,회원가입
@@ -84,7 +101,23 @@ public class SecurityConfig {
                 // JWT 필터를 Spring Security 필터 앞에 등록
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(loginRateLimitFilter,
-                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+
+                .oauth2Login(oauth->oauth
+                        .userInfoEndpoint(u->u.userService(customOAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureHandler(oAuth2FailureHandler)
+                )
+                .logout(l->l.logoutUrl("/api/auth/logout").logoutSuccessHandler((req,res,auth)->
+                {
+                    var cookie=new Cookie("refresh_token","");
+                    cookie.setHttpOnly(true);
+                    cookie.setSecure(true);
+                    cookie.setPath("/");
+                    cookie.setMaxAge(0);
+                    res.addCookie(cookie);
+                    res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                }));
 
 
         return http.build();

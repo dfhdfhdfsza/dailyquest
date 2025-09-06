@@ -33,6 +33,25 @@ services:
       interval: 5s
       timeout: 3s
       retries: 30
+  app:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      # DB가 컨테이너라면 호스트 대신 'mysql'로 접속
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/dailyquest?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_USERNAME: hoje
+      SPRING_DATASOURCE_PASSWORD: "hj13579!@"
+      # Redis도 컨테이너 이름으로
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
 volumes:
   mysql-data:
   redis-data:

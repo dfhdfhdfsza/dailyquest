@@ -8,19 +8,41 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final  CustomUserDetailService customUserDetailService;
 
+    //토큰이 없어도 예외를 던지지 않을 화이트 리스트
+    private static final List<String> WHITELIST=List.of(
+            "/",
+            "/login",
+            "/oauth2/",          // 소셜 로그인 엔드포인트
+            "/login/oauth2",
+            "/css/",
+            "/js/",
+            "/images/",
+            "/error"
+    );
+
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,CustomUserDetailService customUserDetailService){
         this.jwtTokenProvider=jwtTokenProvider;
         this.customUserDetailService=customUserDetailService;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request){
+        String path=request.getRequestURI();
+        return WHITELIST.stream().anyMatch(path::startsWith);
     }
 
 

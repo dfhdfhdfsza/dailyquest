@@ -12,7 +12,8 @@ import java.time.Instant;
 @Builder
 @Table(name = "users",indexes = {
         @Index(name = "idx_login_id",columnList = "loginId"),
-        @Index(name = "idx_email",columnList = "email")
+        @Index(name = "idx_email",columnList = "email"),
+        @Index(name = "idx_provider_providerId",columnList = "provider,providerId")
 })
 public class UserEntity {
 
@@ -24,10 +25,10 @@ public class UserEntity {
     @Column(nullable=false, length=20)
     private  String username;
 
-    @Column(name="login_id", nullable=false, length=20) // 길이 명확
+    @Column(name="login_id", nullable=false, length=30) // 길이 명확
     private  String loginId;
 
-    @Column(nullable=false, length=60)  // BCrypt 해시 길이에 맞춤
+    @Column(nullable = true, length=60)  // BCrypt 해시 길이에 맞춤
     private  String password;
 
     @Column(nullable=false, length=30) // 이메일 길이 제한
@@ -35,6 +36,9 @@ public class UserEntity {
 
     @Column(nullable=false, length=20)
     private  String role;
+
+    private String provider;
+    private String providerId;
 
     // 로그인 제한 관련
     private Integer failedAttempts = 0;

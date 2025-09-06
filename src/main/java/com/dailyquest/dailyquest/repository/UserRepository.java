@@ -23,6 +23,8 @@ public interface UserRepository extends JpaRepository<UserEntity,Long> {
 
     boolean existsByEmail(String email);
 
+    Optional<UserEntity>findByProviderAndProviderId(String provider,String providerId);
+
     //-------------로그인 시도 제한-------------
 
     //해당 loginId의 실패 횟수와 마지막 실패 시각을 DB에 저장

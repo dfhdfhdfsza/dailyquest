@@ -2,12 +2,14 @@ package com.dailyquest.dailyquest.controller;
 
 import com.dailyquest.dailyquest.common.ApiResponse;
 import com.dailyquest.dailyquest.dto.LoginDTO;
+import com.dailyquest.dailyquest.entity.UserEntity;
 import com.dailyquest.dailyquest.security.RefreshTokenRepository;
 import com.dailyquest.dailyquest.repository.UserRepository;
 import com.dailyquest.dailyquest.security.CustomUserDetails;
 import com.dailyquest.dailyquest.security.JwtTokenProvider;
 import com.dailyquest.dailyquest.security.RefreshToken;
 import com.dailyquest.dailyquest.security.limit.LoginAttemptLimiter;
+import com.dailyquest.dailyquest.security.oauth.SocialAuthCodeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +23,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -41,16 +44,24 @@ public class AuthController {
     //로그인 시도 제한 핵심 서비스 주입
     private final LoginAttemptLimiter limiter;
 
+    private final SocialAuthCodeService authCodeService;
+
+    private final UserRepository userRepository;
+
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenProvider jwtTokenProvider,
                           RefreshTokenRepository refreshTokenRepository,
                           UserDetailsService userDetailsService,
-                          LoginAttemptLimiter limiter) {
+                          LoginAttemptLimiter limiter,
+                          SocialAuthCodeService authCodeService,
+                          UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository=refreshTokenRepository;
         this.userDetailsService=userDetailsService;
         this.limiter=limiter;
+        this.authCodeService=authCodeService;
+        this.userRepository=userRepository;
     }
 
     public record LoginResponse(String accessToken, UserSummary user) {
@@ -81,23 +92,23 @@ public class AuthController {
             String fp = loginDTO.getFingerprint(); // 없으면 null OK
 
             //토큰 생성
-            String access = jwtTokenProvider.createAccessToken(user.getUserEntity());
-            String refresh=jwtTokenProvider.createRefreshToken(user.getLoginId().toString(),fp,loginDTO.isAutologin());
+            String accessToken = jwtTokenProvider.createAccessToken(user.getUserEntity());
+            String refreshToken=jwtTokenProvider.createRefreshToken(user.getLoginId().toString(),fp,loginDTO.isAutologin());
 
             // 리프레시 토큰 DB에 해시로 저장
             RefreshToken row = new RefreshToken();
             row.setLoginId(user.getLoginId());
-            row.setTokenHash(hash(refresh));//hash로 저장  -> 탈취 대비
+            row.setTokenHash(hash(refreshToken));//hash로 저장  -> 탈취 대비
             row.setFingerprint(fp);
             row.setExpiresAt(Instant.now().plus(Duration.ofDays(14)));
             refreshTokenRepository.save(row);
 
             // HttpOnly 쿠키로 refresh 내려주기(자바스크립트 접근 불가)
-            addRefreshCookie(res, refresh,loginDTO.isAutologin());
+            addRefreshCookie(res, refreshToken,loginDTO.isAutologin());
 
             // 응답(액세스 토큰은 바디로, 유저 정보는 선택)
             var body = new LoginResponse(
-                    access,
+                    accessToken,
                     new LoginResponse.UserSummary(user.getUserEntity().getUid(), user.getRole())
             );
             return ResponseEntity.ok(ApiResponse.data(body));
@@ -181,6 +192,53 @@ public class AuthController {
 
         clearRefreshCookie(res);    //클라이언트(브라우저)에 저장된 HttpOnly 리프레시 쿠키를 삭제
         return ResponseEntity.ok(ApiResponse.message("로그아웃되었습니다."));
+    }
+
+    /**
+     * 소셜 성공 후 FE가 전달한 임시 code(짧은 TTL)를
+     * 우리 서비스의 JWT(access) + HttpOnly refresh 쿠키로 교환.
+     * - 여기서는 서버측 저장/회전 없이 "쿠키 세팅"만 수행.
+     * - 회전/검증은 네가 이미 가진 /auth/refresh에서 처리한다는 가정.
+     */
+    @PostMapping("/social/exchange")
+    public ResponseEntity<ApiResponse<LoginResponse>> exchange(@RequestBody Map<String,String>body,
+                                                               HttpServletResponse res,
+                                                               @CookieValue(value = "fingerprint",required = false)String fp){
+        String code=body.get("code");
+        if(code==null||code.isBlank()){
+            return  ResponseEntity.badRequest().body(ApiResponse.error("INVALID_REQUEST","code가 없습니다."));
+        }
+
+        Long userId=authCodeService.consume(code);
+        if (userId==null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("CODE_EXPRIRED","코드가 만료되었거나 유효하지않습니다."));
+        }
+        UserEntity user=userRepository.findByUid(userId).orElseThrow(()->new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+        //토큰 발급
+        String accessToken=jwtTokenProvider.createAccessToken(user);
+        String refreshToken=jwtTokenProvider.createRefreshToken(user.getLoginId(),fp,true);
+
+
+        // 3) HttpOnly Refresh 쿠키 세팅 (SameSite=Strict, Secure)
+        //    - 로컬 http 개발 중이면 .secure(false)로 바꿔도 됨(실서비스는 반드시 true)
+        // 리프레시 토큰 DB에 해시로 저장
+        RefreshToken row = new RefreshToken();
+        row.setLoginId(user.getLoginId());
+        row.setTokenHash(hash(refreshToken));//hash로 저장  -> 탈취 대비
+        row.setFingerprint(fp);
+        row.setExpiresAt(Instant.now().plus(Duration.ofDays(14)));
+        refreshTokenRepository.save(row);
+
+        // HttpOnly 쿠키로 refresh 내려주기(자바스크립트 접근 불가)
+        addRefreshCookie(res, refreshToken,true);
+
+        // 4) 응답 바디: accessToken + 최소 유저 정보
+        var rbody = new LoginResponse(
+                accessToken,
+                new LoginResponse.UserSummary(user.getUid(), user.getRole())
+        );
+        return ResponseEntity.ok(ApiResponse.data(rbody));
     }
 
     //persistent=true면 Max-Age(15일), false면 세션 쿠키

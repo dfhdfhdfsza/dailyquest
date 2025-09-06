@@ -33,8 +33,15 @@
         <a th:href="@{/verify}">비밀번호 찾기</a>
     </div>
 
+<div class="flex gap-3">
+    <a class="btn" th:href="@{/oauth2/authorization/google}">Google</a>
+    <a class="btn" th:href="@{/oauth2/authorization/kakao}">Kakao</a>
+    <a class="btn" th:href="@{/oauth2/authorization/naver}">Naver</a>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
 <script type="module" th:src="@{/js/pages/login.js}"></script>
+<!--<script type="module" th:src="@{/js/pages/oauth2.js}"></script>-->
 <script th:src="@{/js/password-hide.js}"></script>
 </body>
 </html>

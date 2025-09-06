@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
    el.style.display = isVisible ? el.dataset[STORE_KEY] : "none";
  }
+
  // 문자열 토큰 유효성 가드
  const isValidTokenString = (v) =>
    typeof v === "string" &&
@@ -81,5 +82,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.visibilityState === "visible") updateButtons();
   });
   window.addEventListener("pageshow", updateButtons);
+  window.addEventListener("auth-updated", updateButtons);
 
 });
