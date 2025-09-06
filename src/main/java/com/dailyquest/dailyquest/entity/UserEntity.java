@@ -28,15 +28,16 @@ public class UserEntity {
     @Column(name="login_id", nullable=false, length=30) // 길이 명확
     private  String loginId;
 
-    @Column(nullable = true, length=60)  // BCrypt 해시 길이에 맞춤
+    @Column(length=60)  // BCrypt 해시 길이에 맞춤
     private  String password;
 
-    @Column(nullable=false, length=30) // 이메일 길이 제한
+    @Column(length=30) // 이메일 길이 제한
     private String email;
 
     @Column(nullable=false, length=20)
     private  String role;
 
+    //소셜 로그인 관련
     private String provider;
     private String providerId;
 

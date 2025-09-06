@@ -35,7 +35,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                 .providerId(info.getProviderId())
                                 .loginId(makeSocialLoginId(info))   //규칙적인 아이디 생성
                                 .password(null)
-                                .email(info.getEmail())
+//                                .email(info.getEmail())
                                 .username(info.getName())
                                 .role("ROLE_USER")
                                 .build()
