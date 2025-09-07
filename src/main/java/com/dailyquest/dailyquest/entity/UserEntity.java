@@ -25,7 +25,7 @@ public class UserEntity {
     @Column(nullable=false, length=20)
     private  String username;
 
-    @Column(name="login_id", nullable=false, length=30) // 길이 명확
+    @Column(name="login_id", length=30) // 길이 명확
     private  String loginId;
 
     @Column(length=60)  // BCrypt 해시 길이에 맞춤

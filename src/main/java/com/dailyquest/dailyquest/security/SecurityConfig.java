@@ -72,7 +72,6 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
                 // 필요할 때만 세션 생성 (OAuth2에 필요)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 //SecurityContext는 명시 저장일 때만 세션에 보관 (JWT 경로에서 세션 생기는 것 방지)
@@ -92,16 +91,15 @@ public class SecurityConfig {
                                 "/oauth2/**","/login/oauth2/**","/api/auth/social/exchange")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,"/","/login", "/signup","/join","/find-id",
-                                "/verify","/reset-password","api/users/check-id", "api/users/check-email")//인덱스,로그인,회원가입
+                                "/verify","/reset-password","/api/users/check-id", "/api/users/check-email")//인덱스,로그인,회원가입
                         .permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/users/**","/api/auth/**")       //아이디찾기,본인인증,비밀번호찾기
                         .permitAll()
                         .anyRequest().authenticated()       //그 외 요청은 로그인 필요
                 )
                 // JWT 필터를 Spring Security 필터 앞에 등록
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(loginRateLimitFilter,
-                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(loginRateLimitFilter,UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter, LoginEndpointRateLimitFilter.class)
 
                 .oauth2Login(oauth->oauth
                         .userInfoEndpoint(u->u.userService(customOAuth2UserService))

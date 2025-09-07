@@ -67,32 +67,32 @@ public class JwtTokenProvider {
 
     }
 
-    //사용자 이름 추출
-    public String getUid(String token){
-        //JWT 문자열을 파싱해서 Payload(Claims)를 꺼낸 뒤, sub 필드인 username을 반환
-        return Jwts.parserBuilder()
-                .setSigningKey(key)     //토큰 검증할때 사용할 시크릿키 설정
-                .build()       //파서 빌더완성
-                .parseClaimsJws(token)  //JWT를 실제로 파싱 및 검증 수행
-                .getBody()
-                .getSubject();          //JWT 내부의 subject 추출
-
-    }
-
-    //토큰 유효성 검사
-    public boolean validateToken(String token) {
-        /* 토큰을 파싱해보고 예외가 발생하지 않으면 유효한 토큰
-           만료되었거나 서명이 잘못된 경우 등은 false 반환 */
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+//    //사용자 이름 추출
+//    public String getUid(String token){
+//        //JWT 문자열을 파싱해서 Payload(Claims)를 꺼낸 뒤, sub 필드인 username을 반환
+//        return Jwts.parserBuilder()
+//                .setSigningKey(key)     //토큰 검증할때 사용할 시크릿키 설정
+//                .build()       //파서 빌더완성
+//                .parseClaimsJws(token)  //JWT를 실제로 파싱 및 검증 수행
+//                .getBody()
+//                .getSubject();          //JWT 내부의 subject 추출
+//
+//    }
+//
+//    //토큰 유효성 검사
+//    public boolean validateToken(String token) {
+//        /* 토큰을 파싱해보고 예외가 발생하지 않으면 유효한 토큰
+//           만료되었거나 서명이 잘못된 경우 등은 false 반환 */
+//        try {
+//            Jwts.parserBuilder()
+//                    .setSigningKey(key)
+//                    .build()
+//                    .parseClaimsJws(token);
+//            return true;
+//        } catch (Exception e) {
+//            return false;
+//        }
+//    }
 
     //로그인 ID 기반으로 만료시간이 포함된 JWT 토큰을 생성
     public String createPasswordResetToken(String loginId){

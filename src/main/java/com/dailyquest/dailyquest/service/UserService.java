@@ -115,7 +115,7 @@ public class UserService {
 
         String loginId = c.getSubject();
 
-        //JPA의 영속성 컨텍스트가 관리하는 엔티티는, 필드 값이 바뀌면 자동으로 UPDATE 쿼리를 실행
+
         UserEntity user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         // 비밀번호 규칙 검증 (8자+, 등) 필요 시 추가
