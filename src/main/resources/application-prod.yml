@@ -1,0 +1,48 @@
+spring:
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+
+  oauth2:
+    client:
+      registration:
+        google:
+          client-id: ${GOOGLE_CLIENT_ID}
+          client-secret: ${GOOGLE_CLIENT_SECRET}
+        kakao:
+          client-id: ${KAKAO_CLIENT_ID}
+          client-secret: ${KAKAO_CLIENT_SECRET}
+        naver:
+          client-id: ${NAVER_CLIENT_ID}
+          client-secret: ${NAVER_CLIENT_SECRET}
+
+  api:
+    base-url: https://api.dailyquest.app/api
+
+  # 운영 CORS: 배포 도메인만
+  cors:
+    allowed-origins: https://dailyquest.app #임시
+
+  springdoc:
+    swagger-ui:
+      enabled: false    # 운영에서 UI 차단 권장
+    api-docs:
+      enabled: false    # 필요시 프록시/인증 뒤에 둠
+
+  management:
+    endpoints.web.exposure.include: health
+    endpoint.health.show-details: never

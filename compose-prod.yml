@@ -1,0 +1,59 @@
+name: dq_prod
+
+services:
+  app:
+    image: dailyquest-app:prod   # 미리 빌드한 Spring Boot jar -> docker image
+    container_name: dailyquest-app
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://prod-db:3306/dailyquest?characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+      NAVER_CLIENT_ID: ${NAVER_CLIENT_ID}
+      NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - prod-db
+      - prod-redis
+
+  prod-db:
+    image: mysql:8.0
+    container_name: dailyquest-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: dailyquest
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # 운영에서는 보안상 포트를 외부에 열지 않는 게 좋아요
+    # ports:
+    #   - "3306:3306"
+
+  prod-redis:
+    image: redis:7
+    container_name: dailyquest-redis
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks: [dq_prod_net]
+    # 운영에서는 외부포트 안 열고 내부 네트워크에서만 사용
+    # ports:
+    #   - "6379:6379"
+
+volumes:
+  mysql_data:
+  redis_data:

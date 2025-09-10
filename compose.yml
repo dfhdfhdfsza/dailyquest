@@ -1,57 +1,62 @@
+name: dq_local   # docker compose v2: COMPOSE_PROJECT_NAME과 동일 효과
+
 services:
-  mysql:
-    image: mysql:8.0
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: "ezen"
-      MYSQL_DATABASE: "dailyquest"
-      MYSQL_USER: "hoje"
-      MYSQL_PASSWORD: "hj13579!@"
-    ports:
-      - "127.0.0.1:3306:3306"   # 로컬에서만 열기(보안)
-    command: >-
-      --default-authentication-plugin=caching_sha2_password
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-    volumes:
-      - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-  redis:
-    image: redis:7
-    restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
-    ports:
-      - "127.0.0.1:6379:6379"   # 로컬에서만 열기(보안)
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
   app:
-    build: .
+    image: dailyquest-app:local
+    container_name: dq_local_app
+    restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: local
       # DB가 컨테이너라면 호스트 대신 'mysql'로 접속
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/dailyquest?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
-      SPRING_DATASOURCE_USERNAME: hoje
-      SPRING_DATASOURCE_PASSWORD: "hj13579!@"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       # Redis도 컨테이너 이름으로
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
     ports:
       - "8080:8080"
+    depends_on: [ db, redis ]
+    networks: [ dq_local_net ]
+
+  db:
+    image: mysql:8.0
+    container_name: dq_local_db
     restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: "dailyquest_local"
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"   # 로컬 개발 편의상 오픈, 필요 없으면 주석
+    volumes:
+      - /data
+    networks: [dq_local_net]
+
+  redis:
+    image: redis:7
+    container_name: dq_local_redis
+    restart: unless-stopped
+    volumes:
+      - /data
+    ports:
+      - "6379:6379"   # 로컬 편의상 오픈
+    networks: [ dq_local_net ]
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+
 volumes:
-  mysql-data:
-  redis-data:
+  mysql-data: {}
+  redis-data: {}
+
+networks:
+  dq_local_net:

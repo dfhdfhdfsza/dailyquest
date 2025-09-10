@@ -28,7 +28,9 @@ out/
 /build/
 .gradle/
 .idea/
-.env
+.env.local
+.env.dev
+.env.prod
 
 ### NetBeans ###
 /nbproject/private/

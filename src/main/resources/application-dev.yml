@@ -1,0 +1,77 @@
+spring:
+
+  server:
+    port: ${PORT:8080}
+    servlet:
+      session:
+        cookie:
+          secure: true
+          same-site: none  # cross-site refresh 쿠키 전략이면 필수(반드시 HTTPS)
+    forward-headers-strategy: framework
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}         # 예: jdbc:mysql://dev-db:3306/dailyquest
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate   # (권장) Flyway로 스키마 관리
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+
+  oauth2:
+    client:
+      registration:
+        google:
+          client-id: ${GOOGLE_CLIENT_ID}
+          client-secret: ${GOOGLE_CLIENT_SECRET}
+        kakao:
+          client-id: ${KAKAO_CLIENT_ID}
+          client-secret: ${KAKAO_CLIENT_SECRET}
+        naver:
+          client-id: ${NAVER_CLIENT_ID}
+          client-secret: ${NAVER_CLIENT_SECRET}
+
+  api:
+    base-url: https://dev.api.dailyquest.app/api
+
+  cors:
+    path-pattern: /api/**
+    allowed-origins: ${CORS_ALLOWED}
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: Authorization,Content-Type
+    allow-credentials: true
+
+  springdoc:
+    swagger-ui:
+      enabled: true
+    api-docs:
+      enabled: true
+
+  management:
+    endpoints.web.exposure.include: health,metrics
+    endpoint.health.show-details: when_authorized
+
+  logging:
+    level:
+      root: INFO

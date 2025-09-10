@@ -1,6 +1,6 @@
 package com.dailyquest.dailyquest.security;
 
-import com.dailyquest.dailyquest.config.CorsProps;
+import com.dailyquest.dailyquest.config.CorsPropsRecord;
 import com.dailyquest.dailyquest.repository.UserRepository;
 import com.dailyquest.dailyquest.security.limit.LoginEndpointRateLimitFilter;
 import com.dailyquest.dailyquest.security.oauth.CustomOAuth2UserService;
@@ -8,7 +8,6 @@ import com.dailyquest.dailyquest.security.oauth.OAuth2FailureHandler;
 import com.dailyquest.dailyquest.security.oauth.OAuth2SuccessHandler;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,16 +28,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
 
-import java.time.Duration;
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity  //Spring Security 설정을 사용자 정의로 오버라이드
-@EnableConfigurationProperties(CorsProps.class)
+@EnableConfigurationProperties(CorsPropsRecord.class)
 public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailService userDetailService;
-    private  final  CorsProps corsProps;
+    private final CorsPropsRecord cors; // ↑ record 하나만 주입
+
     private final LoginEndpointRateLimitFilter loginRateLimitFilter;
 
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -46,12 +43,13 @@ public class SecurityConfig {
     private final OAuth2FailureHandler oAuth2FailureHandler;
 
     public  SecurityConfig(JwtTokenProvider jwtTokenProvider,CustomUserDetailService userDetailService,
-                           UserRepository userRepository,CorsProps corsProps,LoginEndpointRateLimitFilter loginRateLimitFilter,
+                           UserRepository userRepository,LoginEndpointRateLimitFilter loginRateLimitFilter,
                            CustomOAuth2UserService customOAuth2UserService,OAuth2SuccessHandler oAuth2SuccessHandler,
-                           OAuth2FailureHandler oAuth2FailureHandler){
+                           OAuth2FailureHandler oAuth2FailureHandler,
+                           CorsPropsRecord cors){
         this.jwtTokenProvider=jwtTokenProvider;
         this.userDetailService=userDetailService;
-        this.corsProps=corsProps;
+        this.cors=cors;
         this.loginRateLimitFilter=loginRateLimitFilter;
         this.customOAuth2UserService=customOAuth2UserService;
         this.oAuth2SuccessHandler=oAuth2SuccessHandler;
@@ -128,15 +126,28 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
 
-        var cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(corsProps.getAllowedOrigins());
-        cfg.setAllowedMethods(java.util.List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
-        cfg.setAllowedHeaders(java.util.List.of("Content-Type","Authorization","X-Requested-With"));
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(
+                (cors.allowedOrigins() != null && !cors.allowedOrigins().isEmpty())
+                        ? cors.allowedOrigins()
+                        : java.util.List.of("*")
+        );
+        cfg.setAllowedMethods(
+                (cors.allowedMethods() != null && !cors.allowedMethods().isEmpty())
+                        ? cors.allowedMethods()
+                        : java.util.List.of("GET","POST","PUT","DELETE")
+        );
+        cfg.setAllowedHeaders(
+                (cors.allowedHeaders() != null && !cors.allowedHeaders().isEmpty())
+                        ? cors.allowedHeaders()
+                        : java.util.List.of("*")
+        );
         cfg.setAllowCredentials(true);
-        cfg.setMaxAge(java.time.Duration.ofHours(1));
-        var source = new UrlBasedCorsConfigurationSource();
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
         return source;
     }
+
 
 }

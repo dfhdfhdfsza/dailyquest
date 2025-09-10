@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <th:block th:replace="fragments/config :: config"></th:block>
     <title>DailyQuest 메인 페이지</title>
     <link rel="stylesheet" th:href="@{/css/index.css}" />
     <script>

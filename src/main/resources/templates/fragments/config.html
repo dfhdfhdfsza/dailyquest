@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <th:block th:fragment="config">
+        <script th:inline="javascript">
+            window.__ENV = {
+              API_BASE_URL: /*[[${@environment.getProperty('api.base-url')}]]*/ 'http://localhost:8080/api'
+            };
+        </script>
+    </th:block>
+</body>
+</html>

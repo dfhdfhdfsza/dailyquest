@@ -32,7 +32,7 @@ dependencies {
 	implementation 'jakarta.validation:jakarta.validation-api:3.0.2'	//유효성 검사
 	implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final'	//유효성 검사
 	implementation 'org.springframework.boot:spring-boot-starter-mail'	//메일
-	implementation 'io.github.cdimascio:dotenv-java:2.2.4'				//.env
+	implementation 'io.github.cdimascio:dotenv-java:2.2.4'				//.env.local
 	//lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
