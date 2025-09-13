@@ -10,9 +10,10 @@ spring:
     forward-headers-strategy: framework
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}?sslmode=require         # 예: jdbc:mysql://dev-db:3306/dailyquest
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}         # 예: jdbc:mysql://dev-db:3306/dailyquest
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
@@ -20,6 +21,8 @@ spring:
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
       hibernate.jdbc.time_zone: UTC
+    open-in-view: false
+
 
   flyway:
     enabled: true
