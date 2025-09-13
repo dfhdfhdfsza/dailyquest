@@ -17,6 +17,7 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+
 }
 
 repositories {
@@ -57,6 +58,7 @@ dependencies {
 
 	//flyway
 	implementation "org.flywaydb:flyway-core:11.9.0"
+	implementation "org.flywaydb:flyway-database-postgresql:11.9.0"
 	// Postgres 쓰면 드라이버
 	runtimeOnly 'org.postgresql:postgresql'
 
