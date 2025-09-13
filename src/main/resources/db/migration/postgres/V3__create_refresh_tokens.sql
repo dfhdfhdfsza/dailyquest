@@ -27,6 +27,6 @@ BEGIN
     ) THEN
         ALTER TABLE refresh_tokens
             ADD CONSTRAINT fk_refresh_tokens_user
-            FOREIGN KEY (login_id) REFERENCES users(login_id) ON DELETE CASCADE;
+            FOREIGN KEY (login_id) REFERENCES users(uid) ON DELETE CASCADE;
     END IF;
 END $$;
