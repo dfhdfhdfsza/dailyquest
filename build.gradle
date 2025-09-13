@@ -55,6 +55,11 @@ dependencies {
 	//소셜로그인
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+	//flyway
+	implementation 'org.flywaydb:flyway-core'
+	// Postgres 쓰면 드라이버
+	runtimeOnly 'org.postgresql:postgresql'
+
 }
 
 tasks.named('test') {

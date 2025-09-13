@@ -6,11 +6,10 @@ spring:
       session:
         cookie:
           secure: true
-          same-site: none  # cross-site refresh 쿠키 전략이면 필수(반드시 HTTPS)
+          same-site: lax    # (지금 타임리프면 Lax로 충분 / 나중에 React 분리 시 none)
     forward-headers-strategy: framework
 
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL}         # 예: jdbc:mysql://dev-db:3306/dailyquest
     username: ${DB_USER}
     password: ${DB_PASSWORD}
@@ -18,15 +17,19 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate   # (권장) Flyway로 스키마 관리
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+      hibernate.jdbc.time_zone: UTC
 
   flyway:
     enabled: true
+    locations: classpath:db/migration/postgres
     baseline-on-migrate: true
+    clean-disabled: true
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
+      url: ${REDIS_URL}
 
   mail:
     host: ${MAIL_HOST}
