@@ -2,20 +2,24 @@
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
-# wrapper/설정 복사
+# Gradle wrapper 및 설정 복사
 COPY gradlew ./
 COPY gradle ./gradle
 COPY build.gradle settings.gradle ./
 
-# (중요) 윈도우 CRLF 방지 + 실행 권한 부여
-# dos2unix 없이도 sed만으로 충분. 둘 다 쓰고 싶으면 dos2unix 설치해도 OK.
+# 윈도우 줄바꿈 제거 + 실행 권한
 RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
 
 # Gradle 캐시 워밍업
 RUN ./gradlew --version
 
-# 소스 복사 후 빌드
+# 소스 전체 복사
 COPY . .
+
+# (중요) 다시 권한 부여
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
+
+# 빌드 실행
 RUN ./gradlew clean bootJar -x test
 
 # --- Run Stage ---
