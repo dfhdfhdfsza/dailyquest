@@ -56,7 +56,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
 	//flyway
-	implementation 'org.flywaydb:flyway-core'
+	implementation "org.flywaydb:flyway-core:11.9.0"
 	// Postgres 쓰면 드라이버
 	runtimeOnly 'org.postgresql:postgresql'
 
