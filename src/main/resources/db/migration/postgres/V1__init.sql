@@ -17,30 +17,30 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- games
 CREATE TABLE IF NOT EXISTS games (
-  "gameId"     BIGSERIAL PRIMARY KEY,
+  game_id     BIGSERIAL PRIMARY KEY,
   uid          BIGINT        NOT NULL,
-  "gameName"   VARCHAR(100)  NOT NULL,
+  game_name   VARCHAR(100)  NOT NULL,
   CONSTRAINT fk_games_user FOREIGN KEY(uid) REFERENCES users(uid)
 );
 
 -- homeworks
 CREATE TABLE IF NOT EXISTS homeworks (
-  "homeworkId"     BIGSERIAL PRIMARY KEY,
-  "gameId"         BIGINT       NOT NULL,
-  "homeworkTitle"  VARCHAR(200) NOT NULL,
-  "homeworkMemo"   TEXT         NULL,
-  "homeworkType"   VARCHAR(50)  NOT NULL,
-  CONSTRAINT fk_homeworks_game FOREIGN KEY("gameId") REFERENCES games("gameId")
+  homework_id     BIGSERIAL PRIMARY KEY,
+  game_id         BIGINT       NOT NULL,
+  homework_title  VARCHAR(200) NOT NULL,
+  homework_memo   TEXT         NULL,
+  homework_type   VARCHAR(50)  NOT NULL,
+  CONSTRAINT fk_homeworks_game FOREIGN KEY(game_id) REFERENCES games(game_id)
 );
 
 -- history
 CREATE TABLE IF NOT EXISTS history (
-  "historyId"  BIGSERIAL PRIMARY KEY,
+  history_id  BIGSERIAL PRIMARY KEY,
   uid          BIGINT     NOT NULL,
-  "homeworkId" BIGINT     NOT NULL,
-  "startDate"  DATE       NOT NULL,
-  "endDate"    DATE       NOT NULL,
+  homework_id BIGINT     NOT NULL,
+  start_date  DATE       NOT NULL,
+  end_date    DATE       NOT NULL,
   done         BOOLEAN    NOT NULL,
   CONSTRAINT fk_history_user     FOREIGN KEY(uid) REFERENCES users(uid),
-  CONSTRAINT fk_history_homework FOREIGN KEY("homeworkId") REFERENCES homeworks("homeworkId")
+  CONSTRAINT fk_history_homework FOREIGN KEY(homework_id) REFERENCES homeworks(homework_id)
 );
