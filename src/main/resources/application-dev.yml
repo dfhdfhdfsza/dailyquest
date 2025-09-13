@@ -10,7 +10,7 @@ spring:
     forward-headers-strategy: framework
 
   datasource:
-    url: ${DB_URL}         # 예: jdbc:mysql://dev-db:3306/dailyquest
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}?sslmode=require         # 예: jdbc:mysql://dev-db:3306/dailyquest
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 
