@@ -78,3 +78,6 @@ spring:
   logging:
     level:
       root: INFO
+      org:
+        flywaydb: DEBUG
+        hibernate.tool.hbm2ddl: DEBUG

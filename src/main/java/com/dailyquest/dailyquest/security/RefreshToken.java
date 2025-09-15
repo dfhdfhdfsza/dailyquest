@@ -19,6 +19,7 @@ public class RefreshToken {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(name = "login_id")
     private String loginId;
     private String tokenHash;   // 토큰 원문 대신 해시 저장(bcrypt/sha256+salt)
     private String fingerprint;    //클라이언트 지문
