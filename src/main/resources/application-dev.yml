@@ -25,6 +25,7 @@ spring:
 
 
   flyway:
+    location: classpath:db/migration/postgres
     enabled: false
 
   data:
