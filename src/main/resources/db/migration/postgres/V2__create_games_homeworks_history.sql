@@ -36,7 +36,7 @@ ALTER TABLE homeworks
   FOREIGN KEY (game_id) REFERENCES games (game_id);
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_game_id ON homeworks (gameId);
+CREATE INDEX IF NOT EXISTS idx_game_id ON homeworks (game_id);
 
 -- ===========================
 -- 3) history
