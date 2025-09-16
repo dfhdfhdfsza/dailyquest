@@ -86,7 +86,8 @@ public class SecurityConfig {
                         .requestMatchers(                       //swagger 관련은 인증없이 접근 허용
                         "/swagger-ui/**","/swagger-resources/**",
                         "/v3/api-docs/**","/css/**","/js/**","/error", "/error/**","/fontawesome/**","/health",
-                                "/oauth2/**","/login/oauth2/**","/api/auth/social/exchange")
+                                "/oauth2/**","/login/oauth2/**","/api/auth/social/exchange",
+                                "/actuator/health", "/actuator/health/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,"/","/login", "/signup","/join","/find-id",
                                 "/verify","/reset-password","/api/users/check-id", "/api/users/check-email")//인덱스,로그인,회원가입
