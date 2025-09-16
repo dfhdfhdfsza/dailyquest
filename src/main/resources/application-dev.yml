@@ -73,8 +73,10 @@ spring:
       enabled: true
 
   management:
-    endpoints.web.exposure.include: health,metrics
-    endpoint.health.show-details: when_authorized
+    endpoints:
+      web:
+        exposure:
+          include: health,info
 
   logging:
     level:
@@ -82,15 +84,3 @@ spring:
       org:
         flywaydb: DEBUG
         hibernate.tool.hbm2ddl: DEBUG
-
-  security:
-    login-limit:
-      enabled: true
-      ip-threshold: 5
-      ip-window-seconds: 300
-      ip-cooldown-seconds: 300
-      account-soft-threshold: 5
-      account-soft-lock-seconds: 600
-      account-hard-threshold: 10
-      account-hard-lock-seconds: 3600# >= 60
-      account-window-seconds: 300
