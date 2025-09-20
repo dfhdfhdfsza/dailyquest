@@ -31,6 +31,15 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration/postgres
 
+  security:
+    login-limit:
+      enabled: true           # 또는 false
+      window-seconds: 300     # 예: 5분 윈도우
+      max-attempts: 5         # 예: 5회
+      lock-seconds: 600       # 예: 10분 잠금
+      key-prefix: login:lim   # 있다면
+      strategy: ip            # 있다면 (ip/user 등)
+
 
   oauth2:
     client:
