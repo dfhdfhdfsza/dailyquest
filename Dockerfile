@@ -1,6 +1,5 @@
 # --- Build Stage ---
 FROM eclipse-temurin:17-jdk AS build
-SHELL ["/bin/bash", "-lc"]         # bash로 고정
 WORKDIR /app
 
 # 필요한 도구 (dos2unix)
