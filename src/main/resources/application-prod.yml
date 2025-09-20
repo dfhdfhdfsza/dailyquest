@@ -81,6 +81,7 @@ spring:
         show-details: never
 
   server:
+    port: ${PORT:8080}
     forward-headers-strategy: native
     compression:
       enabled: true
