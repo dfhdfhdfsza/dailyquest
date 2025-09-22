@@ -4,6 +4,7 @@ import com.dailyquest.dailyquest.security.limit.LoginEndpointRateLimitFilter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import static org.mockito.Mockito.mock;
 
@@ -19,5 +20,10 @@ public class TestConfig {
     @Bean
     public StringRedisTemplate stringRedisTemplate() {
         return mock(StringRedisTemplate.class);
+    }
+
+    @Bean
+    public JavaMailSender javaMailSender() {
+        return mock(JavaMailSender.class);
     }
 }
