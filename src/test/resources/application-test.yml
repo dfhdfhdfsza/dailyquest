@@ -44,15 +44,16 @@ spring:
       - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
       - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
 
-# 보통 실패 원인 1위: JWT 시크릿/TTL 미설정
-  jwt:
-    secret: "abcdefghijklmnopqrstuvwxyz012345"     # HS256용 32+자
-    refresh:
-      secret: "abcdefghijklmnopqrstuvwxyz0123456789_refresh_key"
-    access-ttl: "PT5M"
-    refresh-ttl: "PT1H"
+
 
   # 메일/OAuth를 쓰는 빈이 초기화될 경우 대비 더미 값
   mail:
     host: localhost
     port: 2525
+  # 보통 실패 원인 1위: JWT 시크릿/TTL 미설정
+jwt:
+  secret: "abcdefghijklmnopqrstuvwxyz012345"     # HS256용 32+자
+  refresh:
+    secret: "abcdefghijklmnopqrstuvwxyz0123456789_refresh_key"
+  access-ttl: "PT5M"
+  refresh-ttl: "PT1H"
