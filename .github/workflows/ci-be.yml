@@ -12,6 +12,14 @@ jobs:
     env:
       SPRING_PROFILES_ACTIVE: test
     steps:
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: be-test-reports
+          path: build/reports/tests/test/
+
       - uses: actions/checkout@v4
 
       - name: Set up JDK 17
