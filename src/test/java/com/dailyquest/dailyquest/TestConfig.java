@@ -33,7 +33,7 @@ public class TestConfig {
     @Bean
     public ClientRegistrationRepository clientRegistrationRepository() {
         // 빈 레지스트리여도 SecurityFilterChain 빌드는 통과합니다.
-        return new InMemoryClientRegistrationRepository();
+        return mock(ClientRegistrationRepository.class);
     }
 
     @Bean
