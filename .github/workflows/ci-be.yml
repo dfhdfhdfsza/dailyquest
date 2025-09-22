@@ -12,6 +12,17 @@ jobs:
     env:
       SPRING_PROFILES_ACTIVE: test
     steps:
+      - name: Debug workspace
+        run: |
+          echo "PWD = $(pwd)"
+          echo "Listing root:"
+          ls -la
+          echo "Listing gradle wrapper dir:"
+          ls -la gradle || true
+          ls -la gradle/wrapper || true
+          echo "Gradle wrapper file:"
+          ls -la gradlew || true
+
       - name: Build & Test
         run: ./gradlew clean build --stacktrace
 
