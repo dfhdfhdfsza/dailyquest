@@ -12,7 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 class DailyquestApplicationTests {
 
 	@Test
-	void contextLoads() {
-	}
+	void contextLoads() {}
 
 }
