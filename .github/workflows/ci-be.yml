@@ -52,3 +52,5 @@ jobs:
           path: |
             build/test-results/test/
             build/reports/tests/test/
+env:
+  SPRING_PROFILES_ACTIVE: test
