@@ -12,6 +12,8 @@ jobs:
     env:
       SPRING_PROFILES_ACTIVE: test
     steps:
+      - name: Build & Test
+        run: ./gradlew clean build --stacktrace
 
       - name: Upload test reports
         if: always()
