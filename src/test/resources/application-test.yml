@@ -21,20 +21,6 @@ spring:
   flyway:
     enabled: false
 
-  security:
-    login-limit:
-      # 계정 기준 윈도/임계치/락
-      account-window-seconds: 300       # 최소 60
-      account-soft-threshold: 5         # 최소 1
-      account-hard-threshold: 10        # 최소 1
-      account-soft-lock-seconds: 300    # 최소 60
-      account-hard-lock-seconds: 600    # 최소 60
-
-      # IP 기준 윈도/임계치/쿨다운
-      ip-window-seconds: 300            # 최소 60
-      ip-threshold: 20                  # 최소 1
-      ip-cooldown-seconds: 300          # 최소 60
-
   # 테스트에서 Redis 자동구성 막기 (없어서 실패 방지)
   autoconfigure:
     exclude:
@@ -57,3 +43,17 @@ jwt:
     secret: "abcdefghijklmnopqrstuvwxyz0123456789_refresh_key"
   access-ttl: "PT5M"
   refresh-ttl: "PT1H"
+
+security:
+  login-limit:
+      # 계정 기준 윈도/임계치/락
+    account-window-seconds: 300       # 최소 60
+    account-soft-threshold: 5         # 최소 1
+    account-hard-threshold: 10        # 최소 1
+    account-soft-lock-seconds: 300    # 최소 60
+    account-hard-lock-seconds: 600    # 최소 60
+
+    # IP 기준 윈도/임계치/쿨다운
+    ip-window-seconds: 300            # 최소 60
+    ip-threshold: 20                  # 최소 1
+    ip-cooldown-seconds: 300          # 최소 60
