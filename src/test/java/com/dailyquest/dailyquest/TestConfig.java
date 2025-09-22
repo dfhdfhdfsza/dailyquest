@@ -1,10 +1,8 @@
 package com.dailyquest.dailyquest;
 
 import com.dailyquest.dailyquest.security.limit.LoginEndpointRateLimitFilter;
-import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import static org.mockito.Mockito.mock;

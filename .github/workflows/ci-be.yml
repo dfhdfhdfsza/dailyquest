@@ -43,7 +43,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build & Test
-        run: ./gradlew clean build --stacktrace
+        run: ./gradlew clean test -Dspring.profiles.active=test --stacktrace
 
       - name: Upload test reports
         if: always()
