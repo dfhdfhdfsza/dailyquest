@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -13,6 +14,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Profile("!test")
 public class LoginEndpointRateLimitFilter extends OncePerRequestFilter {
 
     private final  LoginAttemptLimiter limiter;
