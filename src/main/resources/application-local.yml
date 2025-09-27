@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: optional:dotenv:.env.local,optional:dotenv:.env
+
   server:
     port: 8080
     servlet:
