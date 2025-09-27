@@ -15,28 +15,6 @@ spring:
       write-dates-as-timestamps: false
     time-zone: Asia/Seoul
 
-
-  jwt:
-    issuer: ${JWT_ISSUER}
-    secret: ${JWT_SECRET}
-    access-secret: ${JWT_SECRET}
-    refresh-secret: ${JWT_REFRESH_SECRET}
-    access-ttl: ${JWT_ACCESS_TTL}
-    refresh-ttl: ${JWT_REFRESH_TTL}
-    expiration: 3600000
-
-  security:
-    login-limit:
-      account-window-seconds: 600      # 계정 실패 집계 윈도우(10분)
-      account-soft-threshold: 5        # 소프트락(캡차/지연/임시락 전 단계) 기준
-      account-soft-lock-seconds: 900   # 소프트락 유지(15분)
-      account-hard-threshold: 10       # 하드락 기준
-      account-hard-lock-seconds: 43200 # 하드락 유지(12시간)
-
-      ip-window-seconds: 600           # IP 집계 윈도우(10분)
-      ip-threshold: 20                 # IP 과도 실패 기준
-      ip-cooldown-seconds: 3600        # IP 쿨다운(1시간)
-
     oauth2:
       client:
         registration:
