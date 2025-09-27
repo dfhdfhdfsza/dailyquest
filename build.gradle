@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.3'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "com.gorylenko.gradle-git-properties" version "2.4.1"
 }
 
 group = 'com.dailyquest'
@@ -10,19 +11,6 @@ version = '0.0.1-SNAPSHOT'
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
-	}
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-
-}
-
-sourceSets {
-	test {
-		resources.srcDirs = ["src/test/resources"]
 	}
 }
 
@@ -39,7 +27,8 @@ dependencies {
 	implementation 'jakarta.validation:jakarta.validation-api:3.0.2'	//유효성 검사
 	implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final'	//유효성 검사
 	implementation 'org.springframework.boot:spring-boot-starter-mail'	//메일
-	implementation 'io.github.cdimascio:dotenv-java:2.2.4'				//.env.local
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
 	//lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -76,6 +65,23 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+springBoot {
+	buildInfo()
+}
+
+tasks.named("processResources") {
+	dependsOn("bootBuildInfo")
+}
+
+tasks.named('bootJar') {
+	dependsOn tasks.named('bootBuildInfo')
+}
+
 bootJar {
 	archiveFileName = "app.jar"   // ← 고정 이름
+}
+
+gitProperties {
+	// 필요시 커스터마이즈 (기본값으로도 OK)
+	dateFormatTimeZone = "Asia/Seoul"
 }

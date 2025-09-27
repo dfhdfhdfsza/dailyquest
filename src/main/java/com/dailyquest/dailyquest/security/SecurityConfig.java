@@ -85,9 +85,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth   //http 요청에 대한 접근제어 설정
                         .requestMatchers(                       //swagger 관련은 인증없이 접근 허용
                         "/swagger-ui/**","/swagger-resources/**",
-                        "/v3/api-docs/**","/css/**","/js/**","/error", "/error/**","/fontawesome/**","/health",
-                                "/oauth2/**","/login/oauth2/**","/api/auth/social/exchange",
-                                "/actuator/health", "/actuator/health/**")
+                        "/v3/api-docs/**","/css/**","/js/**","/error", "/error/**","/fontawesome/**",
+                                "/health","/actuator/health", "/actuator/info",
+                                "/oauth2/**","/login/oauth2/**","/api/auth/social/exchange")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,"/","/login", "/signup","/join","/find-id",
                                 "/verify","/reset-password","/api/users/check-id", "/api/users/check-email")//인덱스,로그인,회원가입
