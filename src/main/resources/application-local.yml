@@ -15,6 +15,15 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 
+  jwt:
+    issuer: ${jwt.issuer}
+    secret: ${jwt.secret}
+    access-secret: ${jwt.secret}
+    refresh-secret: ${jwt.refresh.secret}
+    access-ttl: ${jwt.access-ttl}
+    refresh-ttl: ${jwt.refresh.ttl}
+    expiration: 3600000
+
   jpa:
     hibernate:
       ddl-auto: update
