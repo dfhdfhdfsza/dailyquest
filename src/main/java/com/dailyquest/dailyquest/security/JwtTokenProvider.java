@@ -18,16 +18,16 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-    @Value("${JWT_SECRET}")
+    @Value("${jwt.secret}")
     private  String secretkey;
-    @Value("${JWT_REFRESH_SECRET}")
+    @Value("${jwt.refresh.secret}")
     private String refreshSecretKey;
 
     private SecretKey key;
     private SecretKey refreshKey;
 
-    @Value("${JWT_ACCESS_TTL}")  private Duration ttl;    //토큰 만료시간 15분
-    @Value("${JWT_REFRESH_TTL}") private Duration refreshTtl;   //14일
+    @Value("${jwt.access-ttl}")  private Duration ttl;    //토큰 만료시간 15분
+    @Value("${jwt.refresh-ttl}") private Duration refreshTtl;   //14일
 
 
     //secretkey가 Spring으로부터 주입된 이후에 key를 초기화
