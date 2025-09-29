@@ -91,3 +91,14 @@ jwt:
     access-ttl: ${jwt.access-ttl}
     refresh-ttl: ${jwt.refresh.ttl}
     expiration: 3600000
+
+security:
+  login-limit:
+    account-window-seconds: 600
+    account-soft-threshold: 5
+    account-soft-lock-seconds: 900
+    account-hard-threshold: 10
+    account-hard-lock-seconds: 43200
+    ip-window-seconds: 600
+    ip-threshold: 20
+    ip-cooldown-seconds: 3600
