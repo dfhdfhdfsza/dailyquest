@@ -2,20 +2,11 @@ spring:
   config:
     import: optional:dotenv:.env.local,optional:dotenv:.env
 
-  server:
-    port: 8080
-    servlet:
-      session:
-        cookie:
-          same-site: lax   # 로컬에선 lax 권장(HTTPS가 아닐 수 있어서)
-
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
-
-
 
   jpa:
     hibernate:
@@ -65,16 +56,6 @@ spring:
       - "*"
     allow-credentials: true
 
-  springdoc:
-    api-docs:
-      enabled: true
-    swagger-ui:
-      enabled: true
-
-  management:
-    endpoints.web.exposure.include: health,metrics
-    endpoint.health.show-details: always
-
   logging:
     level:
       root: INFO
@@ -86,9 +67,9 @@ spring:
 jwt:
     issuer: ${jwt.issuer}
     secret: ${jwt.secret}
-    access-secret: ${jwt.secret}
-    refresh-secret: ${jwt.refresh.secret}
-    access-ttl: ${jwt.access-ttl}
+    refresh:
+      secret: ${jwt.refresh.secret}
+    access-ttl: ${jwt.access.ttl}
     refresh-ttl: ${jwt.refresh.ttl}
     expiration: 3600000
 
@@ -102,3 +83,19 @@ security:
     ip-window-seconds: 600
     ip-threshold: 20
     ip-cooldown-seconds: 3600
+
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        same-site: lax   # 로컬에선 lax 권장(HTTPS가 아닐 수 있어서)
+management:
+  endpoints.web.exposure.include: health,metrics
+  endpoint.health.show-details: always
+
+springdoc:
+    api-docs:
+      enabled: true
+    swagger-ui:
+      enabled: true
