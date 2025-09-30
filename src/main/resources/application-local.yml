@@ -1,6 +1,8 @@
 spring:
   config:
-    import: optional:dotenv:.env.local,optional:dotenv:.env
+    import:
+      - optional:file:./.env.local[.properties]
+      - optional:file:./.env[.properties]
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -9,9 +11,9 @@ spring:
     password: ${DB_PASSWORD}
 
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: update
-      show-sql: true
 
   flyway:
     enabled: false
@@ -36,12 +38,19 @@ spring:
       file: "E:/gamemanager/dailyquest/compose.yml"  # 위치
       lifecycle-management: start-only  # 개발 중엔 컨테이너 계속 살려두고 싶으면 주석 해제
 
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
-  api:
-    base-url: http://localhost:8080/api
+api:
+  base-url: http://localhost:8080/api
 
   # CORS: 로컬 프론트만 허용
-  cors:
+cors:
     allowed-origins:
       - http://localhost:8080
       - "http://127.0.0.1:3000"
@@ -56,21 +65,13 @@ spring:
       - "*"
     allow-credentials: true
 
-  logging:
-    level:
-      root: INFO
-      org.springframework: INFO
-      org.hibernate.SQL: DEBUG
-      org.springframework.security: INFO
-      org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
 jwt:
-    issuer: ${jwt.issuer}
-    secret: ${jwt.secret}
+    issuer: ${JWT_ISSUER}
+    secret: ${JWT_SECRET}
     refresh:
-      secret: ${jwt.refresh.secret}
-    access-ttl: ${jwt.access.ttl}
-    refresh-ttl: ${jwt.refresh.ttl}
+      secret: ${JWT_REFRESH_SECRET}
+    access-ttl: ${JWT_ACCESS_TTL}
+    refresh-ttl: ${JWT_REFRESH_TTL}
     expiration: 3600000
 
 security:
@@ -90,9 +91,15 @@ server:
     session:
       cookie:
         same-site: lax   # 로컬에선 lax 권장(HTTPS가 아닐 수 있어서)
+
 management:
-  endpoints.web.exposure.include: health,metrics
-  endpoint.health.show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
 
 springdoc:
     api-docs:

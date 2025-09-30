@@ -32,6 +32,7 @@
             <p class="hero-sub">
                 여러 게임의 일일/주간/이벤트 퀘스트를 한 곳에서 관리하세요.
             </p>
+            <span id="healthBadge">—</span>
         </div>
     </section>
 
@@ -84,5 +85,20 @@
 <script th:src="@{/js/pages/authcheck.js}"></script>
 <script th:src="@{/js/pages/logout.js}"></script>
 <script th:src="@{/js/abc.js}"></script>
+    <script>
+        (async () => {
+          try {
+            const r = await fetch("/health", { credentials: "include" });
+            const h = await r.json();
+            const ok = h.success && h.status === "UP";
+            const el = document.getElementById("healthBadge");
+            el.textContent = `${ok ? "🟢" : "🔴"} v${h.version} (${h.profile}) #${h.commit}`;
+            el.title = new Date(h.timestamp).toLocaleString();
+          } catch {
+            document.getElementById("healthBadge").textContent = "🔴 health error";
+          }
+        })();
+    </script>
+
 </body>
 </html>
