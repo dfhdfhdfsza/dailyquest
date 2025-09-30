@@ -49,21 +49,13 @@ logging:
 api:
   base-url: http://localhost:8080/api
 
-  # CORS: 로컬 프론트만 허용
-cors:
-    allowed-origins:
-      - http://localhost:8080
-      - "http://127.0.0.1:3000"
-    allowed-methods:
-      - GET
-      - POST
-      - PUT
-      - PATCH
-      - DELETE
-      - OPTIONS
-    allowed-headers:
-      - "*"
-    allow-credentials: true
+
+#cors:
+#    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+#    allowed-headers: "*"
+#    exposed-headers: ["Location","Set-Cookie"]
+#    max-age-seconds: 3600
+#    allow-credentials: true
 
 jwt:
     issuer: ${JWT_ISSUER}
@@ -106,3 +98,4 @@ springdoc:
       enabled: true
     swagger-ui:
       enabled: true
+

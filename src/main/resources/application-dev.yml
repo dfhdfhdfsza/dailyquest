@@ -60,10 +60,11 @@ spring:
     base-url: https://dev.api.dailyquest.app/api
 
   cors:
-    path-pattern: /api/**
-    allowed-origins: ${CORS_ALLOWED}
+    allowed-origins: "https://dailyquest-dev.vercel.app"
     allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
-    allowed-headers: Authorization,Content-Type
+    allowed-headers: "*"
+    exposed-headers: ["Location","Set-Cookie"]
+    max-age-seconds: 3600
     allow-credentials: true
 
   springdoc:

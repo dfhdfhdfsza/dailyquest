@@ -49,11 +49,12 @@ spring:
 
   # 운영 CORS: 배포 도메인만
   cors:
-    allowed-origins: https://dailyquest.app
+    allowed-origins: "https://dailyquest-production.up.railway.app/"
     allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
-    allowed-headers: Authorization,Content-Type
+    allowed-headers: "*"
+    exposed-headers: ["Location","Set-Cookie"]
+    max-age-seconds: 3600
     allow-credentials: true
-    max-age: 3600
 
   springdoc:
     swagger-ui:

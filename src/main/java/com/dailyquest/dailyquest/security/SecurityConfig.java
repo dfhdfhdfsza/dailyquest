@@ -30,11 +30,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 
 @Configuration
 @EnableWebSecurity  //Spring Security 설정을 사용자 정의로 오버라이드
-@EnableConfigurationProperties(CorsPropsRecord.class)
 public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailService userDetailService;
-    private final CorsPropsRecord cors; // ↑ record 하나만 주입
 
     private final LoginEndpointRateLimitFilter loginRateLimitFilter;
 
@@ -42,18 +40,20 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
 
+    private final CorsConfigurationSource corsConfigurationSource;
+
     public  SecurityConfig(JwtTokenProvider jwtTokenProvider,CustomUserDetailService userDetailService,
                            UserRepository userRepository,LoginEndpointRateLimitFilter loginRateLimitFilter,
                            CustomOAuth2UserService customOAuth2UserService,OAuth2SuccessHandler oAuth2SuccessHandler,
                            OAuth2FailureHandler oAuth2FailureHandler,
-                           CorsPropsRecord cors){
+                           CorsConfigurationSource corsConfigurationSource){
         this.jwtTokenProvider=jwtTokenProvider;
         this.userDetailService=userDetailService;
-        this.cors=cors;
         this.loginRateLimitFilter=loginRateLimitFilter;
         this.customOAuth2UserService=customOAuth2UserService;
         this.oAuth2SuccessHandler=oAuth2SuccessHandler;
         this.oAuth2FailureHandler=oAuth2FailureHandler;
+        this.corsConfigurationSource=corsConfigurationSource;
     }
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {  //password 암호화 설정
@@ -67,7 +67,7 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter=new JwtAuthenticationFilter(jwtTokenProvider,userDetailService);
 
         http.csrf(csrf -> csrf.disable())   //CSRF(사이트 간 요청 위조) 방지 기능 비활성화
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 // 필요할 때만 세션 생성 (OAuth2에 필요)
@@ -123,32 +123,5 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-
-        CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(
-                (cors.allowedOrigins() != null && !cors.allowedOrigins().isEmpty())
-                        ? cors.allowedOrigins()
-                        : java.util.List.of("*")
-        );
-        cfg.setAllowedMethods(
-                (cors.allowedMethods() != null && !cors.allowedMethods().isEmpty())
-                        ? cors.allowedMethods()
-                        : java.util.List.of("GET","POST","PUT","DELETE")
-        );
-        cfg.setAllowedHeaders(
-                (cors.allowedHeaders() != null && !cors.allowedHeaders().isEmpty())
-                        ? cors.allowedHeaders()
-                        : java.util.List.of("*")
-        );
-        cfg.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", cfg);
-        return source;
-    }
-
 
 }

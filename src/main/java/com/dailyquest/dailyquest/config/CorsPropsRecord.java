@@ -4,11 +4,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
 
-@ConfigurationProperties(prefix = "corsrecord")
+@ConfigurationProperties(prefix = "cors")
 public record CorsPropsRecord(   List<String> allowedOrigins,
                                  List<String> allowedMethods,
                                  List<String> allowedHeaders,
-                                 boolean allowCredentials
+                                 List<String> exposedHeaders,
+                                 boolean allowCredentials,
+                                 long maxAgeSeconds
 )
 {
     public List<String> allowedOrigins() {
